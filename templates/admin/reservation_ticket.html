@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Талон бронирования #{{ reservation.id }}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body class="ticket-page">
+<main class="ticket-shell">
+    <section class="reservation-ticket">
+        <div class="ticket-header">
+            <div>
+                <span>SportMix</span>
+                <h1>Талон бронирования</h1>
+            </div>
+            <strong>#{{ reservation.id }}</strong>
+        </div>
+
+        <div class="ticket-grid">
+            <div>
+                <span>Пользователь</span>
+                <strong>{{ reservation.user.name if reservation.user and reservation.user.name else reservation.user.username if reservation.user else 'Пользователь удален' }}</strong>
+            </div>
+            <div>
+                <span>Телефон</span>
+                <strong>{{ reservation.user.phone if reservation.user and reservation.user.phone else '—' }}</strong>
+            </div>
+            <div>
+                <span>Товар</span>
+                <strong>{{ reservation.product.name if reservation.product else 'Товар удален' }}</strong>
+            </div>
+            <div>
+                <span>Размер</span>
+                <strong>{{ reservation.size }}</strong>
+            </div>
+            <div>
+                <span>Количество</span>
+                <strong>{{ reservation.reserved_quantity }}</strong>
+            </div>
+            <div>
+                <span>Статус</span>
+                <strong>{{ status_labels.get(reservation.status, reservation.status) }}</strong>
+            </div>
+            <div>
+                <span>Дата бронирования</span>
+                <strong>{{ reservation.reservation_date.strftime('%d.%m.%Y %H:%M') }}</strong>
+            </div>
+            <div>
+                <span>Комментарий администратора</span>
+                <strong>{{ reservation.manager_comment or '—' }}</strong>
+            </div>
+        </div>
+
+        <div class="ticket-footer">
+            <span>Талон сформирован: {{ generated_at.strftime('%d.%m.%Y %H:%M') }}</span>
+            <button type="button" class="btn btn-primary no-print" onclick="window.print()">
+                <i class="bi bi-printer"></i> Печать
+            </button>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,82 @@
+{% set admin_endpoints = ['admin_dashboard', 'add_product', 'delete_product', 'edit_product', 'admin_reservations', 'admin_analytics', 'admin_logs', 'admin_export_inventory', 'reservation_ticket'] %}
+{% set is_admin = session.user_id and session.role == 'admin' %}
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('index') }}">
+            <i class="bi bi-box-seam"></i> SportMix
+        </a>
+        <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Открыть меню">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in admin_endpoints %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">
+                            <i class="bi bi-speedometer2"></i> Админ-панель
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
+                            <i class="bi bi-shop"></i> Каталог
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'help' %}active{% endif %}" href="{{ url_for('help') }}">
+                            <i class="bi bi-question-circle"></i> Справка
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">
+                            <i class="bi bi-box-arrow-right"></i> Выйти
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
+                            <i class="bi bi-shop"></i> Каталог
+                        </a>
+                    </li>
+                    {% if session.user_id and not is_admin %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'cart' %}active{% endif %}" href="{{ url_for('cart') }}">
+                                <i class="bi bi-cart"></i> Корзина
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'my_reservations' %}active{% endif %}" href="{{ url_for('my_reservations') }}">
+                                <i class="bi bi-calendar"></i> Мои брони
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'help' %}active{% endif %}" href="{{ url_for('help') }}">
+                                <i class="bi bi-question-circle"></i> Справка
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}">
+                                <i class="bi bi-box-arrow-right"></i> Выйти
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}" href="{{ url_for('login') }}">
+                                <i class="bi bi-box-arrow-in-right"></i> Войти
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}" href="{{ url_for('register') }}">
+                                <i class="bi bi-person-plus"></i> Регистрация
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'help' %}active{% endif %}" href="{{ url_for('help') }}">
+                                <i class="bi bi-question-circle"></i> Справка
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

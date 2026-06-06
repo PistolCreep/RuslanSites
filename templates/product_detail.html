@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} | SportMix</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <script src="{{ url_for('static', filename='theme-init.js') }}"></script>
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <script defer src="{{ url_for('static', filename='theme.js') }}"></script>
+</head>
+<body class="page-catalog" 
+      data-auth="{{ 'true' if session.user_id else 'false' }}" 
+      data-add-to-cart="{{ url_for('add_to_cart') }}" 
+      data-product-id="{{ product.id }}"
+      data-role="{{ session.role }}">
+
+{% include '_navbar.html' %}
+
+<div class="container py-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <a href="{{ url_for('index') }}" class="btn btn-secondary mb-4">
+        <i class="bi bi-arrow-left"></i> Назад в каталог
+    </a>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            {% if product.image %}
+                <img src="{{ url_for('static', filename=product.image) }}" 
+                     alt="{{ product.name }}" 
+                     class="product-detail-image"
+                     onclick="openImageZoom(this.src, this.alt)">
+            {% else %}
+                <div class="no-image" style="height: 400px; display: flex; align-items: center; justify-content: center;">
+                    <div><i class="bi bi-image"></i><span>Нет фото</span></div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-6">
+            <div class="product-detail-info">
+                <h1 class="mb-3">{{ product.name }}</h1>
+                
+                <div class="product-detail-price mb-4">
+                    {{ product.price }} ₽
+                </div>
+
+                <div class="detail-stock-status mb-4">
+                    <span class="{{ product_stock_badge(product) }}">{{ product_stock_label(product) }}</span>
+                    <span class="stock-count">Общий остаток: {{ product_total_quantity(product) }} шт.</span>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="text-white mb-2">Описание</h5>
+                    <p class="text-white-50">{{ product.description or 'Описание отсутствует' }}</p>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="text-white mb-3">Выберите размер</h5>
+                    <div class="btn-group-sizes" id="sizes-container">
+                        {% for size in sizes %}
+                            <button class="btn size-btn size-option" 
+                                    data-size="{{ size.size }}" 
+                                    data-qty="{{ size.quantity }}"
+                                    {% if size.quantity <= 0 %}disabled{% endif %}>
+                                {{ size.size }}
+                                <small class="d-block" style="font-size: 0.7rem;">
+                                    {% if size.quantity > 0 %}
+                                        в наличии: {{ size.quantity }}
+                                    {% else %}
+                                        нет в наличии
+                                    {% endif %}
+                                </small>
+                            </button>
+                        {% endfor %}
+                    </div>
+                    <div class="stock-info mt-3" id="stock-info">
+                        {% if product_total_quantity(product) > 0 %}
+                            <i class="bi bi-info-circle"></i> Выберите размер
+                        {% else %}
+                            <span class="badge bg-danger">Нет в наличии</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="delivery-info mb-4">
+                    <small class="text-white-50">
+                        <i class="bi bi-truck"></i> После бронирования товар будет зарезервирован на 3 дня
+                    </small>
+                </div>
+
+                {% if session.role == 'admin' %}
+                    <div class="alert alert-warning text-center mt-3">
+                        <i class="bi bi-shield-lock"></i> Администратор не может добавлять товары в корзину.<br>
+                        Для тестового бронирования <a href="{{ url_for('register') }}" class="alert-link">зарегистрируйте отдельного покупателя</a>.
+                    </div>
+                {% else %}
+                    <button type="button" class="btn btn-primary btn-lg w-100" id="add-to-cart-btn" disabled>
+                        <i class="bi bi-cart-plus"></i> {% if product_total_quantity(product) > 0 %}Выберите размер{% else %}Нет в наличии{% endif %}
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="toastAdd" class="toast align-items-center text-bg-success border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body"><i class="bi bi-cart-check"></i> Товар добавлен в корзину</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+    <div id="toastSize" class="toast align-items-center text-bg-warning border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body"><i class="bi bi-exclamation-triangle"></i> Выберите размер!</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+    <div id="toastLogin" class="toast align-items-center text-bg-danger border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body"><i class="bi bi-person-x"></i> Войдите на сайт, чтобы добавить в корзину</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+    <div id="toastCartNotice" class="toast align-items-center sportmix-toast-notice border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-info-circle"></i>
+                <span id="toastCartNoticeText">Этот товар уже есть в корзине</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Функция для увеличения фото
+    function openImageZoom(src, alt) {
+        var modal = document.createElement('div');
+        modal.className = 'image-modal';
+        modal.innerHTML = '<img src="' + src + '" alt="' + alt + '">' +
+            '<div class="modal-close" onclick="this.parentElement.remove()"><i class="bi bi-x-lg"></i></div>';
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) modal.remove();
+        });
+        document.body.appendChild(modal);
+    }
+
+    // Получаем данные из data-атрибутов body
+    var isAuthenticated = document.body.getAttribute('data-auth') === 'true';
+    var userRole = document.body.getAttribute('data-role');
+    var addToCartUrl = document.body.getAttribute('data-add-to-cart');
+    var productId = parseInt(document.body.getAttribute('data-product-id'));
+    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+    var lowStockThreshold = {{ LOW_STOCK_THRESHOLD }};
+
+    var toastAdd = new bootstrap.Toast(document.getElementById('toastAdd'));
+    var toastSize = new bootstrap.Toast(document.getElementById('toastSize'));
+    var toastLogin = new bootstrap.Toast(document.getElementById('toastLogin'));
+
+    var selectedSize = null;
+    var addBtn = document.getElementById('add-to-cart-btn');
+    var stockInfo = document.getElementById('stock-info');
+
+    document.querySelectorAll('.size-option').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.size-option').forEach(function(b) {
+                b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            
+            var size = btn.getAttribute('data-size');
+            var qty = parseInt(btn.getAttribute('data-qty'));
+            selectedSize = size;
+            
+            if (qty <= 0) {
+                stockInfo.innerHTML = '<span class="badge bg-danger">Нет в наличии</span>';
+                if (addBtn) {
+                    addBtn.disabled = true;
+                    addBtn.innerHTML = '<i class="bi bi-cart-plus"></i> Нет в наличии';
+                }
+            } else {
+                var statusLabel = qty < lowStockThreshold ? 'Заканчивается' : 'В наличии';
+                var statusClass = qty < lowStockThreshold ? 'bg-warning text-dark' : 'bg-success';
+                stockInfo.innerHTML = `<span class="badge ${statusClass}">${statusLabel}: ${qty} шт.</span>`;
+                if (addBtn) {
+                    addBtn.disabled = false;
+                    addBtn.innerHTML = '<i class="bi bi-cart-plus"></i> Добавить в корзину';
+                }
+            }
+        });
+    });
+
+    if (addBtn) {
+        addBtn.addEventListener('click', function() {
+            if (!selectedSize) {
+                toastSize.show();
+                return;
+            }
+            
+            if (!isAuthenticated) {
+                toastLogin.show();
+                return;
+            }
+            
+            if (userRole === 'admin') {
+                alert('Администратор не может добавлять товары в корзину. Используйте учётную запись покупателя.');
+                return;
+            }
+            
+            fetch(addToCartUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: 'product_id=' + productId + '&size=' + encodeURIComponent(selectedSize)
+            })
+            .then(function(res) {
+                if (res.status === 403) {
+                    throw new Error('CSRF token rejected');
+                }
+                return res.text();
+            })
+            .then(function(data) {
+                if (data.includes("уже в корзине") || data.includes("Ошибка") || data.includes("не более")) {
+                    alert(data);
+                } else {
+                    toastAdd.show();
+                    addBtn.innerHTML = '<i class="bi bi-check-lg"></i> Добавлено!';
+                    addBtn.disabled = true;
+                    setTimeout(function() {
+                        addBtn.innerHTML = '<i class="bi bi-cart-plus"></i> Добавить в корзину';
+                        addBtn.disabled = false;
+                    }, 2000);
+                }
+            })
+            .catch(function(err) {
+                console.error('Error:', err);
+                toastSize.show();
+            });
+        });
+    }
+</script>
+
+</body>
+</html>

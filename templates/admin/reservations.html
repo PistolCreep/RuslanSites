@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Управление бронированиями</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<script src="{{ url_for('static', filename='theme-init.js') }}"></script>
+<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+<script defer src="{{ url_for('static', filename='theme.js') }}"></script>
+</head>
+<body class="page-admin">
+{% include '_navbar.html' %}
+
+<div class="container-fluid px-4">
+    <h1 class="page-title">
+        <i class="bi bi-calendar2-check-fill"></i> Управление бронированиями
+    </h1>
+    <p class="page-lead text-center text-white-50 mb-4">
+        Заявки покупателей проходят подтверждение менеджером. Остаток списывается только при переводе брони в статус “Выдан”.
+    </p>
+    <div class="admin-page-actions mb-4">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Назад в админку
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="page-panel reservation-toolbar mb-4">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Статус</label>
+                <select name="status" class="form-control">
+                    <option value="">Все статусы</option>
+                    {% for status, label in status_labels.items() %}
+                        <option value="{{ status }}" {% if filters.status == status %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label">Товар</label>
+                <select name="product_id" class="form-control">
+                    <option value="">Все товары</option>
+                    {% for product in products %}
+                        <option value="{{ product.id }}" {% if filters.product_id == product.id %}selected{% endif %}>{{ product.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Причина невыдачи</label>
+                <select name="reason" class="form-control">
+                    <option value="">Все причины</option>
+                    {% for reason in not_issued_reasons %}
+                        <option value="{{ reason }}" {% if filters.reason == reason %}selected{% endif %}>{{ reason }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-6 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Фильтр</button>
+                <a href="{{ url_for('admin_reservations') }}" class="btn btn-secondary" title="Сбросить фильтры"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
+    </div>
+
+    <form method="post" action="{{ url_for('admin_reservations', status=filters.status, product_id=filters.product_id, reason=filters.reason) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="reservations-table-wrap">
+            <div class="table-scroll">
+                <table class="table table-dark align-middle reservations-table">
+                    <thead>
+                        <tr>
+                            <th>Пользователь</th>
+                            <th>Телефон</th>
+                            <th>Товар / категория</th>
+                            <th>Размер</th>
+                            <th>Кол-во</th>
+                            <th>Дата брони</th>
+                            <th>Статус</th>
+                            <th>Комментарий менеджера</th>
+                            <th>Причина невыдачи</th>
+                            <th>История / печать</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reservation in reservations %}
+                                                <tr class="reservation-row">
+                            <td>
+                                <input type="hidden" name="reservation_ids" value="{{ reservation.id }}">
+                                <strong>{{ reservation.user.username if reservation.user else 'Пользователь удален' }}</strong>
+                                <div class="text-white-50 small">{{ reservation.user.name if reservation.user and reservation.user.name else '—' }}</div>
+                            </td>
+                            <td>{{ reservation.user.phone if reservation.user and reservation.user.phone else '—' }}</td>
+                            <td class="reservation-product-cell">
+                                <strong>{{ reservation.product.name if reservation.product else 'Товар удален' }}</strong>
+                                <div class="text-white-50 small">{{ reservation.product.category.name if reservation.product and reservation.product.category else 'Без категории' }}</div>
+                            </td>
+                            <td>{{ reservation.size }}</td>
+                            <td>{{ reservation.reserved_quantity }}</td>
+                            <td>{{ reservation.reservation_date.strftime('%d.%m.%Y %H:%M') }}</td>
+                            <td class="reservation-status-cell">
+                                <select name="status_{{ reservation.id }}" class="form-control form-control-sm reservation-status-select">
+                                    {% for status, label in status_labels.items() %}
+                                        <option value="{{ status }}" {% if reservation.status == status %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% if reservation.is_stock_written_off %}
+                                    <div class="small text-success mt-1">Списано со склада</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <textarea name="manager_comment_{{ reservation.id }}" class="form-control form-control-sm manager-comment-input" rows="2" placeholder="Комментарий">{{ reservation.manager_comment or '' }}</textarea>
+                            </td>
+                            <td>
+                                <div class="not-issued-reason-group">
+                                    <select name="not_issued_reason_{{ reservation.id }}" class="form-control form-control-sm not-issued-reason">
+                                        <option value="">Выберите причину</option>
+                                        {% for reason in not_issued_reasons %}
+                                            <option value="{{ reason }}" {% if reservation.not_issued_reason == reason %}selected{% endif %}>{{ reason }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </td>
+                            <td class="reservation-history-cell">
+                                <a href="{{ url_for('reservation_ticket', reservation_id=reservation.id) }}" class="btn btn-secondary btn-sm mb-2" target="_blank">
+                                    <i class="bi bi-printer"></i> Печать талона
+                                </a>
+                                <details class="history-details">
+                                    <summary>История</summary>
+                                    {% if reservation.status_history %}
+                                        <div class="history-list">
+                                            {% for item in reservation.status_history|sort(attribute='changed_at') %}
+                                                <div class="history-item">
+                                                    <strong>{{ status_labels.get(item.old_status, 'Создано') if item.old_status else 'Создано' }} → {{ status_labels.get(item.new_status, item.new_status) }}</strong>
+                                                    <span>{{ item.changed_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                                                    {% if item.comment %}
+                                                        <p>{{ item.comment }}</p>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="small text-white-50 mt-2">История пока не заполнена</div>
+                                    {% endif %}
+                                </details>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center py-5">
+                                <h4>Бронирований пока нет</h4>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if reservations %}
+            <div class="reservation-save-bar">
+                <button type="submit" class="btn btn-success btn-lg reservation-save-button">
+                    <i class="bi bi-save"></i> Сохранить изменения
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </form>
+
+    <!-- ПАГИНАЦИЯ -->
+    {% if pagination and pagination.pages > 1 %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('admin_reservations', page=pagination.prev_num, **filters) if pagination.has_prev else '#' }}">
+                    <i class="bi bi-chevron-left"></i> Назад
+                </a>
+            </li>
+            {% for p in pagination.iter_pages() %}
+                {% if p %}
+                    <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('admin_reservations', page=p, **filters) }}">{{ p }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('admin_reservations', page=pagination.next_num, **filters) if pagination.has_next else '#' }}">
+                    Вперед <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.querySelectorAll('.reservation-row').forEach((row) => {
+    const statusSelect = row.querySelector('.reservation-status-select');
+    const reasonGroup = row.querySelector('.not-issued-reason-group');
+    const reasonSelect = row.querySelector('.not-issued-reason');
+
+    function syncReasonState() {
+        const requiresReason = statusSelect.value === 'not_issued';
+        reasonGroup.hidden = !requiresReason;
+        reasonGroup.classList.toggle('reason-required', requiresReason);
+        reasonSelect.required = requiresReason;
+        reasonSelect.disabled = !requiresReason;
+    }
+
+    statusSelect.addEventListener('change', syncReasonState);
+    syncReasonState();
+});
+</script>
+</body>
+</html>

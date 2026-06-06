@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мои бронирования</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<script src="{{ url_for('static', filename='theme-init.js') }}"></script>
+<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+<script defer src="{{ url_for('static', filename='theme.js') }}"></script>
+<style>
+    /* Дополнительные стили для компактной кнопки отмены */
+    .cancel-btn {
+        white-space: nowrap;
+    }
+</style>
+</head>
+<body class="page-reservations">
+{% include '_navbar.html' %}
+
+<div class="container">
+    <h1 class="page-title">
+        <i class="bi bi-calendar-check-fill"></i> Мои бронирования
+    </h1>
+    <p class="page-lead text-center text-white-50 mb-4">Список предварительных бронирований с возможностью отмены активной заявки.</p>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary btn-back">← Назад в каталог</a>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if reservations %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-dark align-middle text-center">
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Размер</th>
+                    <th>Кол-во</th>
+                    <th>Цена</th>
+                    <th>Статус</th>
+                    <th>Комментарий менеджера</th>
+                    <th>Дата брони</th>
+                    <th>Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reservation in reservations %}
+                <tr>
+                    <td>{{ reservation.product.name }}</td>
+                    <td>{{ reservation.size }}</td>
+                    <td>{{ reservation.reserved_quantity }}</td>
+                    <td>{{ reservation.product.price }} ₽</td>
+                    <td>
+                        <span class="badge {{ status_badges.get(reservation.status, 'badge-secondary') }}">
+                            {{ status_labels.get(reservation.status, reservation.status) }}
+                        </span>
+                        {% if reservation.status == 'not_issued' and reservation.not_issued_reason %}
+                            <div class="small text-warning mt-2">Причина: {{ reservation.not_issued_reason }}</div>
+                        {% endif %}
+                    </td>
+                    <td>{{ reservation.manager_comment or '—' }}</td>
+                    <td>{{ reservation.reservation_date.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td>
+                        {% if reservation.status in open_statuses %}
+                            <button type="button" class="btn btn-warning btn-sm cancel-btn" 
+                                    data-id="{{ reservation.id }}" data-name="{{ reservation.product.name }}">
+                                <i class="bi bi-x-circle"></i> <span>Отменить</span>
+                            </button>
+                        {% else %}
+                            — 
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-calendar-x"></i>
+            <h3>Бронирований пока нет</h3>
+            <p>Добавьте товар в корзину и оформите предварительное бронирование.</p>
+            <a href="{{ url_for('index') }}" class="btn btn-primary mt-3">Перейти к товарам</a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Модальное окно для отмены бронирования -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-sportmix">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-question-circle-fill" style="color: var(--primary);"></i> 
+                    Отмена бронирования
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="cancelModalBody">
+                Вы уверены, что хотите отменить бронирование?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Нет, вернуться
+                </button>
+                <form method="post" id="cancelForm" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <input type="hidden" name="cancel_id" id="cancelId" value="">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-check-lg"></i> Да, отменить
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Модальное окно для отмены
+    const cancelModal = new bootstrap.Modal(document.getElementById('cancelModal'));
+    const cancelForm = document.getElementById('cancelForm');
+    const cancelIdInput = document.getElementById('cancelId');
+    const modalBody = document.getElementById('cancelModalBody');
+
+    document.querySelectorAll('.cancel-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const reservationId = this.getAttribute('data-id');
+            const productName = this.getAttribute('data-name');
+            cancelIdInput.value = reservationId;
+            modalBody.innerText = `Вы уверены, что хотите отменить бронирование товара "${productName}"?`;
+            cancelModal.show();
+        });
+    });
+</script>
+</body>
+</html>

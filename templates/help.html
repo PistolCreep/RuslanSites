@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Справочная система - SportMix</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="{{ url_for('static', filename='theme-init.js') }}"></script>
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <script defer src="{{ url_for('static', filename='theme.js') }}"></script>
+    <style>
+        /* Дополнительные стили для страницы справки */
+        .help-wrapper {
+            padding: 40px 0 80px;
+        }
+        
+        .help-sidebar {
+            position: sticky;
+            top: 90px;
+            background: linear-gradient(180deg, rgba(10, 20, 38, 0.95), rgba(5, 12, 24, 0.95));
+            backdrop-filter: blur(24px);
+            border-radius: 28px;
+            border: 1px solid rgba(109, 213, 255, 0.2);
+            padding: 24px 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .help-sidebar:hover {
+            border-color: rgba(109, 213, 255, 0.4);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .help-sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(109, 213, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .help-sidebar-title i {
+            color: #4da8ff;
+            font-size: 1.4rem;
+        }
+        
+        .help-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .help-nav-link {
+            padding: 10px 14px;
+            border-radius: 14px;
+            color: rgba(237, 246, 255, 0.7);
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        
+        .help-nav-link i {
+            width: 24px;
+            font-size: 1.1rem;
+        }
+        
+        .help-nav-link:hover {
+            background: rgba(77, 168, 255, 0.15);
+            color: #fff;
+            transform: translateX(4px);
+        }
+        
+        .help-nav-link.active {
+            background: linear-gradient(135deg, rgba(77, 168, 255, 0.25), rgba(139, 92, 246, 0.25));
+            color: #fff;
+            border-left: 3px solid #4da8ff;
+        }
+        
+        .help-nav-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(109, 213, 255, 0.3), transparent);
+            margin: 16px 0;
+        }
+        
+        .help-nav-header {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(157, 234, 255, 0.6);
+            padding: 12px 14px 6px;
+            font-weight: 800;
+        }
+        
+        .help-content {
+            background: linear-gradient(180deg, rgba(10, 20, 38, 0.85), rgba(5, 12, 24, 0.85));
+            backdrop-filter: blur(24px);
+            border-radius: 28px;
+            border: 1px solid rgba(109, 213, 255, 0.2);
+            padding: 35px;
+            transition: all 0.3s ease;
+        }
+        
+        .help-content:hover {
+            border-color: rgba(109, 213, 255, 0.35);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+        }
+        
+        .help-section {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .help-section h2 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff, #4da8ff, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .help-section h2 i {
+            color: #4da8ff;
+            font-size: 2rem;
+        }
+        
+        .help-section h3 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 25px 0 15px;
+            padding-left: 12px;
+            border-left: 4px solid #4da8ff;
+        }
+        
+        .help-section h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #9fe8ff;
+            margin: 20px 0 10px;
+        }
+        
+        .help-section p {
+            color: rgba(237, 246, 255, 0.8);
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+        
+        .help-section ul, .help-section ol {
+            color: rgba(237, 246, 255, 0.8);
+            line-height: 1.7;
+            padding-left: 20px;
+        }
+        
+        .help-section li {
+            margin-bottom: 8px;
+        }
+        
+        .help-section code {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-family: monospace;
+            color: #ffd166;
+        }
+        
+        .help-alert {
+            background: rgba(77, 168, 255, 0.12);
+            border: 1px solid rgba(77, 168, 255, 0.3);
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .help-alert i {
+            font-size: 1.5rem;
+            color: #4da8ff;
+        }
+        
+        .help-alert.warning {
+            background: rgba(255, 210, 102, 0.1);
+            border-color: rgba(255, 210, 102, 0.3);
+        }
+        
+        .help-alert.warning i {
+            color: #ffd166;
+        }
+        
+        .help-alert.danger {
+            background: rgba(255, 82, 119, 0.1);
+            border-color: rgba(255, 82, 119, 0.3);
+        }
+        
+        .help-alert.danger i {
+            color: #ff5277;
+        }
+        
+        .help-alert.success {
+            background: rgba(46, 230, 166, 0.1);
+            border-color: rgba(46, 230, 166, 0.3);
+        }
+        
+        .help-alert.success i {
+            color: #2ee6a6;
+        }
+        
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        
+        .badge-active {
+            background: linear-gradient(135deg, #2ee6a6, #10b981);
+            color: #06101d;
+        }
+        
+        .badge-completed {
+            background: linear-gradient(135deg, #4da8ff, #8b5cf6);
+            color: #fff;
+        }
+        
+        .badge-cancelled {
+            background: rgba(108, 117, 125, 0.5);
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .search-box {
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(109, 213, 255, 0.2);
+            border-radius: 30px;
+            color: #fff;
+            padding: 12px 18px;
+            font-size: 0.9rem;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #4da8ff;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 3px rgba(77, 168, 255, 0.1);
+        }
+        
+        .search-box input::placeholder {
+            color: rgba(237, 246, 255, 0.4);
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #4da8ff, #8b5cf6);
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 900;
+            color: #06101d;
+            margin-right: 12px;
+        }
+
+        .help-sidebar,
+        .help-content {
+            background: var(--panel-strong);
+            border-color: var(--line);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .help-sidebar:hover,
+        .help-content:hover {
+            border-color: var(--line-strong);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .help-sidebar-title,
+        .help-section h3 {
+            color: var(--text);
+            border-color: var(--line);
+        }
+
+        .help-sidebar-title i,
+        .help-section h2 i,
+        .help-nav-link i {
+            color: var(--primary);
+        }
+
+        .help-nav-link {
+            color: var(--muted);
+        }
+
+        .help-nav-link:hover,
+        .help-nav-link.active {
+            color: var(--text);
+            background: rgba(56, 111, 153, .10);
+            border-left-color: var(--primary);
+        }
+
+        .help-nav-divider {
+            background: linear-gradient(90deg, transparent, var(--line), transparent);
+        }
+
+        .help-nav-header,
+        .help-section h4 {
+            color: var(--primary);
+        }
+
+        .help-section h2 {
+            background: linear-gradient(135deg, var(--text), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .help-section p,
+        .help-section ul,
+        .help-section ol {
+            color: var(--muted);
+        }
+
+        .help-section code {
+            background: rgba(56, 111, 153, .10);
+            color: var(--warning);
+        }
+
+        .help-alert {
+            background: rgba(56, 111, 153, .08);
+            border-color: var(--line);
+            color: var(--text);
+        }
+
+        .search-box input {
+            background: var(--panel-light);
+            border-color: var(--line);
+            color: var(--text);
+        }
+
+        .search-box input::placeholder {
+            color: var(--muted-2);
+        }
+
+        html[data-theme="dark"] .help-nav-link:hover,
+        html[data-theme="dark"] .help-nav-link.active {
+            color: #fff;
+            background: rgba(77, 168, 255, .15);
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 991px) {
+            .help-sidebar {
+                position: static;
+                margin-bottom: 25px;
+            }
+            .help-content {
+                padding: 25px;
+            }
+            .help-section h2 {
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .help-content {
+                padding: 20px;
+            }
+            .help-section h2 {
+                font-size: 1.3rem;
+            }
+            .help-alert {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body class="page-help">
+
+{% include '_navbar.html' %}
+
+<!-- ОСНОВНОЕ СОДЕРЖИМОЕ -->
+<div class="container help-wrapper">
+    <div class="row">
+        <!-- Боковое меню -->
+        <div class="col-lg-3 mb-4">
+            <div class="help-sidebar">
+                <div class="help-sidebar-title">
+                    <i class="bi bi-question-circle-fill"></i>
+                    <span>Справочная система</span>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="helpSearch" placeholder="Поиск по разделам...">
+                </div>
+                <div class="help-nav" id="helpNav">
+                    <a href="#general" class="help-nav-link active" data-section="general">
+                        <i class="bi bi-info-circle"></i> Общие сведения
+                    </a>
+                    <a href="#getting-started" class="help-nav-link" data-section="getting-started">
+                        <i class="bi bi-rocket-takeoff"></i> Начало работы
+                    </a>
+                    <a href="#registration" class="help-nav-link" data-section="registration">
+                        <i class="bi bi-person-plus"></i> Регистрация
+                    </a>
+                    <a href="#login" class="help-nav-link" data-section="login">
+                        <i class="bi bi-box-arrow-in-right"></i> Вход в систему
+                    </a>
+                    
+                    <div class="help-nav-divider"></div>
+                    <div class="help-nav-header">
+                        <i class="bi bi-grid-3x3-gap-fill"></i> Основная работа
+                    </div>
+                    <a href="#catalog" class="help-nav-link" data-section="catalog">
+                        <i class="bi bi-shop"></i> Каталог товаров
+                    </a>
+                    <a href="#cart" class="help-nav-link" data-section="cart">
+                        <i class="bi bi-cart"></i> Корзина
+                    </a>
+                    <a href="#reservation" class="help-nav-link" data-section="reservation">
+                        <i class="bi bi-calendar-check"></i> Бронирование
+                    </a>
+                    <a href="#my-reservations" class="help-nav-link" data-section="my-reservations">
+                        <i class="bi bi-calendar"></i> Мои бронирования
+                    </a>
+                    <a href="#cancel" class="help-nav-link" data-section="cancel">
+                        <i class="bi bi-x-circle"></i> Отмена бронирования
+                    </a>
+                    
+                    {% if session.role == 'admin' %}
+                    <div class="help-nav-divider"></div>
+                    <div class="help-nav-header">
+                        <i class="bi bi-shield-lock-fill"></i> Администрирование
+                    </div>
+                    <a href="#add-product" class="help-nav-link" data-section="add-product">
+                        <i class="bi bi-plus-circle"></i> Добавление товара
+                    </a>
+                    <a href="#edit-product" class="help-nav-link" data-section="edit-product">
+                        <i class="bi bi-pencil-square"></i> Редактирование товара
+                    </a>
+                    <a href="#delete-product" class="help-nav-link" data-section="delete-product">
+                        <i class="bi bi-trash"></i> Удаление товара
+                    </a>
+                    <a href="#manage-reservations" class="help-nav-link" data-section="manage-reservations">
+                        <i class="bi bi-calendar2-check"></i> Управление бронями
+                    </a>
+                    {% endif %}
+                    
+                    <div class="help-nav-divider"></div>
+                    <a href="#faq" class="help-nav-link" data-section="faq">
+                        <i class="bi bi-question-lg"></i> Часто задаваемые вопросы
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Основной контент -->
+        <div class="col-lg-9">
+            <div class="help-content" id="helpContent">
+                <!-- Общие сведения -->
+                <div id="general" class="help-section">
+                    <h2><i class="bi bi-info-circle-fill"></i> Общие сведения о системе</h2>
+                    <p><strong>SportMix</strong> — это автоматизированная система учёта товаров и бронирования для магазина спортивной одежды. Система позволяет эффективно управлять ассортиментом, отслеживать складские остатки по размерам, а также оформлять предварительное бронирование товаров для клиентов.</p>
+                    
+                    <div class="help-alert success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>Система разработана с использованием современных веб-технологий: Python Flask, SQLite, Bootstrap 5. Интерфейс адаптирован для работы на любых устройствах — от стационарных компьютеров до планшетов.</div>
+                    </div>
+                    
+                    <h3>Основные возможности системы</h3>
+                    <ul>
+                        <li>📦 <strong>Управление каталогом товаров</strong> — добавление, редактирование, удаление товаров с фотографиями</li>
+                        <li>📏 <strong>Учёт размеров и остатков</strong> — для каждого товара можно указать несколько размеров с количеством на складе</li>
+                        <li>🛒 <strong>Корзина и бронирование</strong> — удобный механизм добавления товаров и оформления брони</li>
+                        <li>📋 <strong>История бронирований</strong> — просмотр всех своих броней с информацией о статусе</li>
+                        <li>👑 <strong>Административная панель</strong> — полный контроль над товарами и бронированиями для руководителя</li>
+                    </ul>
+                </div>
+                
+                <!-- Начало работы -->
+                <div id="getting-started" class="help-section" style="display:none;">
+                    <h2><i class="bi bi-rocket-takeoff-fill"></i> Начало работы</h2>
+                    <p>Для начала работы с системой вам необходимо:</p>
+                    <ol>
+                        <li><strong>Зарегистрироваться</strong> — создать учётную запись, указав логин, пароль, имя и телефон</li>
+                        <li><strong>Войти в систему</strong> — используя созданные учётные данные</li>
+                        <li><strong>Просмотреть каталог</strong> — выбрать интересующие товары</li>
+                        <li><strong>Добавить товары в корзину</strong> — указав размер для каждого товара</li>
+                        <li><strong>Оформить бронирование</strong> — подтвердить заказ и получить товары</li>
+                    </ol>
+                    <div class="help-alert">
+                        <i class="bi bi-lightbulb"></i>
+                        <div>Если вы являетесь администратором магазина, после входа вам будут доступны дополнительные разделы для управления ассортиментом и бронированиями.</div>
+                    </div>
+                </div>
+                
+                <!-- Регистрация -->
+                <div id="registration" class="help-section" style="display:none;">
+                    <h2><i class="bi bi-person-plus-fill"></i> Регистрация</h2>
+                    <p>Для регистрации в системе выполните следующие шаги:</p>
+                    <ol>
+                        <li>На главной странице нажмите кнопку <strong>«Регистрация»</strong> в верхнем меню</li>
+                        <li>Заполните форму регистрации:
+                            <ul>
+                                <li><strong>Логин</strong> — уникальное имя пользователя (минимум 3 символа)</li>
+                                <li><strong>Пароль</strong> — надёжный пароль (минимум 4 символа)</li>
+                                <li><strong>Ваше имя</strong> — как вас называть</li>
+                                <li><strong>Телефон</strong> — для связи (формат: +79991234567)</li>
+                            </ul>
+                        </li>
+                        <li>Нажмите кнопку <strong>«Зарегистрироваться»</strong></li>
+                    </ol>
+                    <div class="help-alert warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div>Логин должен быть уникальным. Если выбранный логин уже занят, система сообщит об ошибке — попробуйте другой логин.</div>
+                    </div>
+                </div>
+                
+                <!-- Вход -->
+                <div id="login" class="help-section" style="display:none;">
+                    <h2><i class="bi bi-box-arrow-in-right"></i> Вход в систему</h2>
+                    <ol>
+                        <li>Нажмите кнопку <strong>«Войти»</strong> в верхнем меню</li>
+                        <li>Введите ваш <strong>логин</strong> и <strong>пароль</strong></li>
+                        <li>Нажмите кнопку <strong>«Войти»</strong></li>
+                    </ol>
+                    <p>После успешного входа вы будете перенаправлены на главную страницу с каталогом товаров.</p>
+                    <div class="help-alert danger">
+                        <i class="bi bi-shield-exclamation"></i>
+                        <div>При вводе неверного логина или пароля система покажет сообщение об ошибке. Пожалуйста, проверьте правильность введённых данных.</div>
+                    </div>
+                </div>
+                
+                <!-- Каталог товаров -->
+                <div id="catalog" class="help-section" style="display:none;">
+                    <h2><i class="bi bi-shop"></i> Каталог товаров</h2>
+                    <p>Главная страница системы — это каталог товаров, где представлены все доступные позиции.</p>
+                    <h3>Навигация по каталогу</h3>
+                    <ul>
+                        <li><strong>Фильтрация по категориям</strong> — в левой боковой панели выберите нужную категорию: «Одежда», «Обувь», «Аксессуары» или «Все категории»</li>
+                        <li><strong>Поиск</strong> — используйте строку поиска, фильтр категории, сортировку по цене и переключатель «Только в наличии»</li>
+                    </ul>
+                    <h3>Карточка товара</h3>
+                    <p>Каждый товар представлен в виде карточки, содержащей:</p>
+                    <ul>
+                        <li>🖼️ <strong>Изображение</strong> — кликните для увеличения</li>
+                        <li>📝 <strong>Название и описание</strong></li>
+                        <li>💰 <strong>Цена</strong></li>
+                        <li>🔢 <strong>Размеры</strong> — нажмите на размер, чтобы увидеть остаток на складе</li>
+                        <li>➕ <strong>Кнопка «В корзину»</strong> — доступна только после выбора размера</li>
+                    </ul>
+                    <div class="help-alert">
+                        <i class="bi bi-info-circle"></i>
+                        <div>Если размер отображается серым цветом — товара в этом размере нет в наличии, добавить его в корзину невозможно.</div>
+                    </div>
+                </div>
+                
+                <!-- Корзина -->
+                <div id="cart" class="help-section" style="display:none;">
+                    <h2><i class="bi bi-cart-fill"></i> Корзина</h2>
+                    <p>Корзина — это временное хранилище товаров, которые вы планируете забронировать.</p>
+                    <h3>Управление корзиной</h3>
+                    <ul>
+                        <li><strong>Просмотр</strong> — нажмите на кнопку «Корзина» в верхнем меню</li>
+                        <li><strong>Удаление</strong> — нажмите красную кнопку «Удалить» под товаром</li>
+                        <li><strong>Оформление бронирования</strong> — нажмите кнопку «Забронировать все»</li>
+                    </ul>
+                    <div class="help-alert warning">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <div>Обратите внимание: бронирование оформляется сразу на все товары в корзине. Если какого-то товара нет на складе, бронирование не будет создано.</div>
+                    </div>
+                </div>
+                
+                <!-- Бронирование -->
+                <div id="reservation" class="help-section" style="display:none;">
+                    <h2><i class="bi bi-calendar-check-fill"></i> Бронирование товара</h2>
+                    <p>Бронирование — это процесс резервирования товаров за вами.</p>
+                    <h3>Как оформить бронирование</h3>
+                    <ol>
+                        <li>Добавьте нужные товары в корзину (каждый товар добавляется отдельно с выбором размера)</li>
+                        <li>Перейдите в корзину</li>
+                        <li>Проверьте состав корзины</li>
+                        <li>Нажмите кнопку <strong>«Забронировать все»</strong></li>
+                        <li>Дождитесь сообщения «Корзина успешно забронирована!»</li>
+                    </ol>
+                    <div class="help-alert success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>После оформления заявки товар ожидает обработки менеджером. Складской остаток списывается только после фактической выдачи.</div>
+                    </div>
+                </div>
+                
+                <!-- Мои бронирования -->
+                <div id="my-reservations" class="help-section" style="display:none;">
+                    <h2><i class="bi bi-calendar-fill"></i> Мои бронирования</h2>
+                    <p>В разделе «Мои бронирования» отображаются все ваши активные и завершённые брони.</p>
+                    <h3>Статусы бронирований</h3>
+                    <ul>
+                        <li><span class="badge-status badge-active"><i class="bi bi-check-circle"></i> Ожидает подтверждения</span> — заявка создана и ожидает обработки менеджером</li>
+                        <li><span class="badge-status badge-completed"><i class="bi bi-check2-circle"></i> Выдан</span> — товар получен клиентом</li>
+                        <li><span class="badge-status badge-cancelled"><i class="bi bi-x-circle"></i> Отменена</span> — бронь отменена или автоматически закрыта после истечения срока ожидания</li>
+                    </ul>
+                    <p>Для активной брони доступна кнопка «Отменить» — при нажатии бронь будет отменена, а товар возвращён на склад.</p>
+                </div>
+                
+                <!-- Отмена бронирования -->
+                <div id="cancel" class="help-section" style="display:none;">
+                    <h2><i class="bi bi-x-circle-fill"></i> Отмена бронирования</h2>
+                    <ol>
+                        <li>Перейдите в раздел <strong>«Мои бронирования»</strong></li>
+                        <li>Найдите нужную бронь со статусом «Ожидает подтверждения» или «Подтверждено»</li>
+                        <li>Нажмите кнопку <strong>«Отменить»</strong></li>
+                        <li>Подтвердите действие в модальном окне</li>
+                    </ol>
+                    <div class="help-alert warning">
+                        <i class="bi bi-arrow-repeat"></i>
+                        <div>После отмены бронирования товар автоматически возвращается на склад и становится доступен для других клиентов.</div>
+                    </div>
+                </div>
+                
+                <!-- Часто задаваемые вопросы -->
+                <div id="faq" class="help-section" style="display:none;">
+                    <h2><i class="bi bi-question-circle-fill"></i> Часто задаваемые вопросы</h2>
+                    
+                    <h3>Какие форматы изображений поддерживаются?</h3>
+                    <p>Поддерживаются форматы: <strong>JPG, JPEG, PNG, GIF, WEBP</strong>. Максимальный размер одного файла — <strong>16 МБ</strong>.</p>
+                    
+                    <h3>Можно ли добавить несколько размеров для одного товара?</h3>
+                    <p>Да, при добавлении или редактировании товара администратор может добавить неограниченное количество размеров. Для каждого размера указывается своё количество на складе.</p>
+                    
+                    <h3>Что произойдёт, если товара нет на складе?</h3>
+                    <p>Если товара нет на складе, кнопка размера будет неактивной, и добавить товар в корзину не получится.</p>
+                    
+                    <h3>Можно ли восстановить удалённый товар?</h3>
+                    <p>Удаление товара является «мягким» — товар перестаёт отображаться в каталоге, но остаётся в базе данных. Восстановление доступно администратору в разделе управления товарами.</p>
+                    
+                    <h3>Как узнать, какие товары сейчас в корзине?</h3>
+                    <p>Нажмите на кнопку «Корзина» в верхнем меню — откроется страница со списком всех добавленных товаров.</p>
+                    
+                    <h3>Что делать, если забыл пароль?</h3>
+                    <p>В текущей версии системы восстановление пароля выполняется администратором вручную. Обратитесь к руководителю магазина.</p>
+                </div>
+                
+                <!-- Административные разделы -->
+                {% if session.role == 'admin' %}
+                <div id="add-product" class="help-section" style="display:none;">
+                    <h2><i class="bi bi-plus-circle-fill"></i> Добавление товара</h2>
+                    <ol>
+                        <li>Войдите в систему с правами администратора</li>
+                        <li>Откройте <strong>«Админ-панель»</strong> и выберите карточку <strong>«Добавить товар»</strong></li>
+                        <li>Заполните поля:
+                            <ul>
+                                <li><strong>Название товара</strong> — обязательно</li>
+                                <li><strong>Цена</strong> — положительное число</li>
+                                <li><strong>Описание</strong> — подробное описание товара</li>
+                                <li><strong>Категория</strong> — выберите из списка</li>
+                                <li><strong>Изображение</strong> — загрузите фото товара</li>
+                            </ul>
+                        </li>
+                        <li>В разделе «Размеры и остатки» добавьте строки с размерами (S, M, L, XL и т.д.) и количеством на складе</li>
+                        <li>Нажмите кнопку <strong>«Добавить товар»</strong></li>
+                    </ol>
+                    <div class="help-alert success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>После добавления товар сразу появляется в каталоге на главной странице.</div>
+                    </div>
+                </div>
+                
+                <div id="edit-product" class="help-section" style="display:none;">
+                    <h2><i class="bi bi-pencil-square"></i> Редактирование товара</h2>
+                    <ol>
+                        <li>Войдите в систему с правами администратора</li>
+                        <li>Откройте <strong>«Админ-панель»</strong> и выберите карточку <strong>«Редактировать / удалить товары»</strong></li>
+                        <li>В таблице найдите нужный товар</li>
+                        <li>Нажмите кнопку <strong>«Редактировать»</strong></li>
+                        <li>Измените необходимые поля</li>
+                        <li>При необходимости загрузите новое изображение (старое будет автоматически удалено)</li>
+                        <li>Нажмите <strong>«Сохранить изменения»</strong></li>
+                    </ol>
+                </div>
+                
+                <div id="delete-product" class="help-section" style="display:none;">
+                    <h2><i class="bi bi-trash-fill"></i> Удаление товара</h2>
+                    <ol>
+                        <li>Войдите в систему с правами администратора</li>
+                        <li>Откройте <strong>«Админ-панель»</strong> и выберите карточку <strong>«Редактировать / удалить товары»</strong></li>
+                        <li>Найдите нужный товар</li>
+                        <li>Нажмите кнопку <strong>«Удалить»</strong></li>
+                        <li>Подтвердите удаление в модальном окне</li>
+                    </ol>
+                    <div class="help-alert warning">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <div>Удаление товара является «мягким» — товар перестаёт отображаться в каталоге, но остаётся в базе для сохранения истории бронирований. Если на товар есть активные бронирования, удаление будет заблокировано.</div>
+                    </div>
+                </div>
+                
+                <div id="manage-reservations" class="help-section" style="display:none;">
+                    <h2><i class="bi bi-calendar2-check-fill"></i> Управление бронированиями</h2>
+                    <p>В разделе «Бронирования» администратор видит все бронирования всех пользователей.</p>
+                    <h3>Доступные действия</h3>
+                    <ul>
+                        <li><strong>Подтвердить бронь</strong> — измените статус на «Подтверждено» и сохраните изменения.</li>
+                        <li><strong>Выдать товар</strong> — измените статус на «Выдан». Остаток будет списан со склада.</li>
+                        <li><strong>Зафиксировать отказ</strong> — выберите статус «Не выдан» и укажите причину.</li>
+                    </ul>
+                    <div class="help-alert">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <div>История статусов и печатный талон доступны в строке каждого бронирования.</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Навигация по разделам справки
+    const sections = document.querySelectorAll('.help-section');
+    const navLinks = document.querySelectorAll('.help-nav-link');
+    
+    function showSection(sectionId) {
+        sections.forEach(section => {
+            section.style.display = 'none';
+        });
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+            targetSection.style.display = 'block';
+        }
+        
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            const linkSection = link.getAttribute('data-section');
+            if (linkSection === sectionId) {
+                link.classList.add('active');
+            }
+        });
+    }
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const sectionId = link.getAttribute('data-section');
+            showSection(sectionId);
+            
+            // Обновляем URL без перезагрузки
+            history.pushState(null, '', '#' + sectionId);
+        });
+    });
+    
+    // Обработка якоря из URL
+    const hash = window.location.hash.substring(1);
+    if (hash && document.getElementById(hash)) {
+        showSection(hash);
+    } else {
+        showSection('general');
+    }
+    
+    // Поиск по разделам
+    const searchInput = document.getElementById('helpSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            if (query === '') {
+                // Показываем все ссылки
+                navLinks.forEach(link => {
+                    link.style.display = '';
+                });
+                return;
+            }
+            
+            let found = false;
+            navLinks.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    link.style.display = '';
+                    found = true;
+                } else {
+                    link.style.display = 'none';
+                }
+            });
+        });
+    }
+</script>
+</body>
+</html>

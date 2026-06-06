@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Журнал действий администратора</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<script src="{{ url_for('static', filename='theme-init.js') }}"></script>
+<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+<script defer src="{{ url_for('static', filename='theme.js') }}"></script>
+</head>
+<body class="page-admin">
+{% include '_navbar.html' %}
+
+<div class="container-fluid px-4">
+    <h1 class="page-title">
+        <i class="bi bi-journal-text"></i> Журнал действий
+    </h1>
+    <p class="page-lead text-center text-white-50 mb-4">
+        Фиксация административных операций: товары, восстановление, удаление и обработка бронирований.
+    </p>
+
+    <div class="admin-page-actions mb-4">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Назад в админку
+        </a>
+    </div>
+
+    {% if logs %}
+        <div class="logs-list">
+            {% for log in logs %}
+                <article class="log-card">
+                    <div class="log-card-main">
+                        <strong>{{ log.action }}</strong>
+                        <span>{{ log.object_type }}</span>
+                        <p>{{ log.description or 'Описание не указано' }}</p>
+                    </div>
+                    <div class="log-card-meta">
+                        <span>{{ log.admin.username if log.admin else 'Система' }}</span>
+                        <time>{{ log.created_at.strftime('%d.%m.%Y %H:%M') }}</time>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-journal-x"></i>
+            <h3>Журнал действий пока пуст</h3>
+            <p>Записи появятся после добавления товаров, изменения бронирований или других административных операций.</p>
+        </div>
+    {% endif %}
+
+    {% if pagination and pagination.pages > 1 %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('admin_logs', page=pagination.prev_num) if pagination.has_prev else '#' }}">
+                    <i class="bi bi-chevron-left"></i> Назад
+                </a>
+            </li>
+            {% for p in pagination.iter_pages() %}
+                {% if p %}
+                    <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('admin_logs', page=p) }}">{{ p }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('admin_logs', page=pagination.next_num) if pagination.has_next else '#' }}">
+                    Вперед <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

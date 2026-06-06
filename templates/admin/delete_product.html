@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Управление товарами</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<script src="{{ url_for('static', filename='theme-init.js') }}"></script>
+<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+<script defer src="{{ url_for('static', filename='theme.js') }}"></script>
+</head>
+<body class="page-admin">
+{% include '_navbar.html' %}
+<div class="container">
+    <h1 class="page-title">
+        <i class="bi bi-gear-fill"></i> Управление товарами
+    </h1>
+    <p class="page-lead text-center text-white-50 mb-4">Управление товарами: редактирование карточек и мягкое удаление позиций без нарушения истории бронирований.</p>
+    <div class="admin-page-actions mb-4">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Назад в админку
+        </a>
+        <a href="{{ url_for('admin_export_inventory') }}" class="btn btn-success">
+            <i class="bi bi-file-excel"></i> Экспорт остатков в Excel
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <table class="table table-bordered table-dark products-management-table">
+        <thead>
+            <tr>
+                <th>Изображение</th>
+                <th>Название</th>
+                <th>Категория</th>
+                <th>Цена</th>
+                <th>Наличие</th>
+                <th>Активность</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>
+                    {% if product.image %}
+                        <img class="admin-product-thumb" src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}">
+                    {% else %}
+                        <span class="text-white-50">Нет фото</span>
+                    {% endif %}
+                </td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.category.name if product.category else 'Без категории' }}</td>
+                <td>{{ product.price }} ₽</td>
+                <td>
+                    <span class="{{ product_stock_badge(product) }}">{{ product_stock_label(product) }}</span>
+                    <div class="small text-white-50 mt-1">{{ product_total_quantity(product) }} шт.</div>
+                </td>
+                <td>
+                    {% if product.is_active %}
+                        <span class="badge badge-success">Активен</span>
+                    {% else %}
+                        <span class="badge badge-secondary">Удален</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('edit_product') }}?edit={{ product.id }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-pencil"></i> Редактировать
+                    </a>
+                    {% if product.is_active %}
+                        <form method="post" action="{{ url_for('delete_product') }}" class="d-inline delete-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="delete_id" value="{{ product.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="bi bi-trash"></i> Удалить
+                            </button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="{{ url_for('restore_product') }}" class="d-inline restore-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="restore_id" value="{{ product.id }}">
+                            <button type="submit" class="btn btn-warning btn-sm">
+                                <i class="bi bi-arrow-repeat"></i> Восстановить
+                            </button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <h4>Товаров пока нет</h4>
+                    <a href="{{ url_for('add_product') }}" class="btn btn-primary mt-3">➕ Добавить товар</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="products-mobile-list">
+        {% for product in products %}
+        <article class="product-manage-card">
+            <div class="product-manage-card-head">
+                <div class="product-manage-image">
+                    {% if product.image %}
+                        <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="product-manage-no-image">
+                            <i class="bi bi-image"></i>
+                            <span>Нет фото</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="product-manage-main">
+                    <h2>{{ product.name }}</h2>
+                    <span class="product-manage-category">{{ product.category.name if product.category else 'Без категории' }}</span>
+                    <strong class="product-manage-price">{{ product.price }} ₽</strong>
+                </div>
+            </div>
+            <div class="product-manage-meta">
+                <div>
+                    <span>Лимит на пользователя</span>
+                    <strong>{{ product.max_per_user or 5 }}</strong>
+                </div>
+                <div>
+                    <span>Размеров</span>
+                    <strong>{{ product.sizes|length }}</strong>
+                </div>
+                <div>
+                    <span>Наличие</span>
+                    <strong>{{ product_stock_label(product) }}</strong>
+                </div>
+                <div>
+                    <span>Статус</span>
+                    <strong>{{ 'Активен' if product.is_active else 'Удален' }}</strong>
+                </div>
+            </div>
+            <div class="product-manage-description">
+                {{ product.description or 'Описание не указано' }}
+            </div>
+            {% if product.sizes %}
+            <div class="product-manage-sizes">
+                {% for size in product.sizes %}
+                    <span>{{ size.size }}: {{ size.quantity }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="product-manage-actions">
+                <a href="{{ url_for('edit_product') }}?edit={{ product.id }}" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Редактировать
+                </a>
+                {% if product.is_active %}
+                    <form method="post" action="{{ url_for('delete_product') }}" class="delete-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="delete_id" value="{{ product.id }}">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Удалить
+                        </button>
+                    </form>
+                {% else %}
+                    <form method="post" action="{{ url_for('restore_product') }}" class="restore-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="restore_id" value="{{ product.id }}">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-arrow-repeat"></i> Восстановить
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </article>
+        {% else %}
+        <div class="product-manage-empty">
+            <h3>Товаров пока нет</h3>
+            <a href="{{ url_for('add_product') }}" class="btn btn-primary mt-3">
+                <i class="bi bi-plus-lg"></i> Добавить товар
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if pagination and pagination.pages > 1 %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('delete_product', page=pagination.prev_num) if pagination.has_prev else '#' }}">
+                    <i class="bi bi-chevron-left"></i> Назад
+                </a>
+            </li>
+            {% for p in pagination.iter_pages() %}
+                {% if p %}
+                    <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('delete_product', page=p) }}">{{ p }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('delete_product', page=pagination.next_num) if pagination.has_next else '#' }}">
+                    Вперед <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- КРАСИВОЕ МОДАЛЬНОЕ ОКНО С ПОДДЕРЖКОЙ ТЕМ -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-sportmix">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalTitle">
+                    <i class="bi bi-question-circle-fill" style="color: var(--primary);"></i> 
+                    Подтверждение
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmModalBody">
+                Вы уверены?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Отмена
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmModalActionBtn">
+                    <i class="bi bi-trash3"></i> Да, удалить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function() {
+        const modalElement = document.getElementById('confirmModal');
+        if (!modalElement) return;
+        const confirmModal = new bootstrap.Modal(modalElement);
+        const modalTitle = document.getElementById('confirmModalTitle');
+        const modalBody = document.getElementById('confirmModalBody');
+        const modalActionBtn = document.getElementById('confirmModalActionBtn');
+        let pendingForm = null;
+
+        function showModal(title, message, btnClass, btnText, icon, form) {
+            pendingForm = form;
+            // Обновляем заголовок с иконкой
+            modalTitle.innerHTML = `<i class="bi bi-${icon}" style="color: var(--primary);"></i> ${title}`;
+            modalBody.innerText = message;
+            modalActionBtn.className = btnClass;
+            modalActionBtn.innerHTML = btnText;
+            confirmModal.show();
+        }
+
+        modalActionBtn.addEventListener('click', function() {
+            if (pendingForm) {
+                pendingForm.submit();
+                pendingForm = null;
+            }
+            confirmModal.hide();
+        });
+
+        document.querySelectorAll('.delete-form, .restore-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const isDelete = form.classList.contains('delete-form');
+                if (isDelete) {
+                    showModal('Удаление товара', 'Вы действительно хотите удалить этот товар? Он будет скрыт из каталога, но останется в базе.', 'btn btn-danger', '<i class="bi bi-trash3"></i> Да, удалить', 'trash3', form);
+                } else {
+                    showModal('Восстановление товара', 'Восстановить товар? Он снова появится в каталоге.', 'btn btn-warning', '<i class="bi bi-arrow-repeat"></i> Да, восстановить', 'arrow-repeat', form);
+                }
+            });
+        });
+    })();
+</script>
+</body>
+</html>

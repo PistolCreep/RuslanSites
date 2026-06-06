@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Бронирование товара</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<script src="{{ url_for('static', filename='theme-init.js') }}"></script>
+<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+<script defer src="{{ url_for('static', filename='theme.js') }}"></script>
+</head>
+<body class="page-reserve">
+{% include '_navbar.html' %}
+
+<div class="container">
+    <h1 class="page-title">
+        <i class="bi bi-calendar-plus-fill"></i> Бронирование товара
+    </h1>
+    <p class="page-lead text-center text-white-50 mb-4">Проверьте размер и количество перед созданием заявки на предварительное бронирование.</p>
+<a href="{{ url_for('index') }}" class="btn btn-secondary mb-3">
+        <i class="bi bi-arrow-left"></i> Назад в каталог
+    </a>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="booking-card">
+        {% if product.image %}
+            <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}">
+        {% endif %}
+        
+        <h3>{{ product.name }}</h3>
+        <p>{{ product.description }}</p>
+        <p class="h4 text-warning">Цена: {{ product.price }} ₽</p>
+        <div class="detail-stock-status justify-content-center mb-3">
+            <span class="{{ product_stock_badge(product) }}">{{ product_stock_label(product) }}</span>
+            <span class="stock-count">Общий остаток: {{ product_total_quantity(product) }} шт.</span>
+        </div>
+        
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="form-group">
+                <label class="form-label">Выберите размер:</label>
+                <select name="size" class="form-control" required>
+                    <option value="">-- Выберите размер --</option>
+                    {% for size in sizes %}
+                        {% if size.quantity > 0 %}
+                            <option value="{{ size.size }}">
+                                {{ size.size }} (в наличии: {{ size.quantity }})
+                            </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantity" class="form-label">Количество:</label>
+                <input type="number" name="quantity" id="quantity" 
+                       min="1" value="1" class="form-control" required>
+            </div>
+            
+            <button type="submit" name="reserve" class="btn btn-success" {% if product_total_quantity(product) <= 0 %}disabled{% endif %}>
+                <i class="bi bi-calendar-check"></i> Забронировать
+            </button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

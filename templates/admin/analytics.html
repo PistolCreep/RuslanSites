@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Аналитика бронирований</title>
+<link rel="icon" href="data:,">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<script src="{{ url_for('static', filename='theme-init.js') }}"></script>
+<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+<script defer src="{{ url_for('static', filename='theme.js') }}"></script>
+</head>
+<body class="analytics-page">
+{% include '_navbar.html' %}
+
+<div class="container-fluid analytics-shell px-4">
+    <h1 class="page-title">
+        <i class="bi bi-graph-up-arrow"></i> Аналитика продаж
+    </h1>
+    <p class="page-lead text-center text-white-50 mb-4">
+        Анализируйте выдачи, отказы и причины невыдачи по каждому товару, чтобы находить слабые места ассортимента.
+    </p>
+    <div class="admin-page-actions mb-4">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Назад в админку
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="analytics-metrics mb-4">
+        <div class="analytics-card">
+            <span>Всего бронирований</span>
+            <strong>{{ metrics.total }}</strong>
+        </div>
+        <div class="analytics-card">
+            <span>Выдано</span>
+            <strong>{{ metrics.issued }}</strong>
+        </div>
+        <div class="analytics-card">
+            <span>Не выдано</span>
+            <strong>{{ metrics.not_issued }}</strong>
+        </div>
+        <div class="analytics-card">
+            <span>Ожидает подтверждения</span>
+            <strong>{{ metrics.pending }}</strong>
+        </div>
+        <div class="analytics-card">
+            <span>Процент успешных выдач</span>
+            <strong>{{ metrics.success_percent }}%</strong>
+        </div>
+    </div>
+
+    <div class="ai-analysis-card mb-4">
+        <div class="ai-analysis-head">
+            <div>
+                <span class="section-kicker"><i class="bi bi-stars"></i> Локальный анализ</span>
+                <h2>Интеллектуальный анализ</h2>
+            </div>
+            <div class="ai-analysis-score">{{ metrics.success_percent }}%</div>
+        </div>
+        <div class="ai-summary">
+            {{ ai_analysis.summary }}
+        </div>
+        <div class="ai-analysis-grid">
+            <div>
+                <h4><i class="bi bi-exclamation-triangle"></i> Возможные проблемы</h4>
+                <ul>
+                    {% for problem in ai_analysis.problems %}
+                        <li>{{ problem }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div>
+                <h4><i class="bi bi-lightbulb"></i> Рекомендации менеджеру</h4>
+                <ul>
+                    {% for recommendation in ai_analysis.recommendations %}
+                        <li>{{ recommendation }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-panel analytics-filter mb-4">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label">Товар</label>
+            <select name="product_id" class="form-control">
+                <option value="">Все товары</option>
+                {% for product in products %}
+                    <option value="{{ product.id }}" {% if selected_product_id == product.id %}selected{% endif %}>{{ product.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <label class="form-label">Дата от</label>
+            <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <label class="form-label">Дата до</label>
+            <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+        </div>
+        <div class="col-lg-2 col-md-6 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Фильтр</button>
+            <a href="{{ url_for('admin_analytics') }}" class="btn btn-secondary" title="Сбросить"><i class="bi bi-x-lg"></i></a>
+        </div>
+        <div class="col-lg-3 d-flex gap-2">
+            <a href="{{ url_for('admin_analytics', export='csv', product_id=selected_product_id, start_date=start_date, end_date=end_date) }}" class="btn btn-success w-100"><i class="bi bi-filetype-csv"></i> CSV</a>
+            <a href="{{ url_for('admin_analytics', export='excel', product_id=selected_product_id, start_date=start_date, end_date=end_date) }}" class="btn btn-info w-100"><i class="bi bi-file-excel"></i> Excel</a>
+        </div>
+    </form>
+</div>
+
+    <div class="analytics-charts mb-4">
+        <div class="chart-card">
+            <div class="chart-card-head">
+                <span class="chart-kicker"><i class="bi bi-activity"></i> Воронка</span>
+                <h4 class="text-white">Статусы бронирований</h4>
+            </div>
+            {% if has_status_data %}
+                <div class="chart-box chart-box-donut"><canvas id="statusChart"></canvas></div>
+            {% else %}
+                <div class="chart-empty">
+                    <i class="bi bi-pie-chart"></i>
+                    <span>Нет данных по статусам бронирований</span>
+                </div>
+            {% endif %}
+        </div>
+        <div class="chart-card">
+            <div class="chart-card-head">
+                <span class="chart-kicker"><i class="bi bi-bar-chart-line"></i> Топ товаров</span>
+                <h4 class="text-white">Выдано / не выдано</h4>
+            </div>
+            {% if has_product_data %}
+                <div class="chart-box chart-box-bars"><canvas id="productChart"></canvas></div>
+            {% else %}
+                <div class="chart-empty">
+                    <i class="bi bi-box-seam"></i>
+                    <span>Нет выданных или невыданных товаров</span>
+                </div>
+            {% endif %}
+        </div>
+        <div class="chart-card">
+            <div class="chart-card-head">
+                <span class="chart-kicker"><i class="bi bi-exclamation-diamond"></i> Контроль отказов</span>
+                <h4 class="text-white">Причины невыдачи</h4>
+            </div>
+            {% if has_reason_data %}
+                <div class="chart-box chart-box-bars"><canvas id="reasonsChart"></canvas></div>
+            {% else %}
+                <div class="chart-empty">
+                    <i class="bi bi-clipboard2-x"></i>
+                    <span>Нет данных по причинам невыдачи</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="analytics-table-wrap">
+        <div class="table-scroll">
+        <table class="table table-dark align-middle reservations-table analytics-products-table">
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Категория</th>
+                    <th>Всего бронирований</th>
+                    <th>Выдано</th>
+                    <th>Не выдано</th>
+                    <th>Процент выдачи</th>
+                    <th>Самая частая причина невыдачи</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in product_stats %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.category }}</td>
+                    <td>{{ item.total }}</td>
+                    <td>{{ item.issued }}</td>
+                    <td>{{ item.not_issued }}</td>
+                    <td>{{ item.success_percent }}%</td>
+                    <td>{{ item.top_reason }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-5">
+                        <h4>Данных для аналитики пока нет</h4>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script id="analytics-chart-data" type="application/json">{{ chart_data_json|safe }}</script>
+<script defer src="{{ url_for('static', filename='analytics-charts.js') }}"></script>
+</body>
+</html>

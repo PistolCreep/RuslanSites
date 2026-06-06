@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SportMix | Каталог товаров</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<script src="{{ url_for('static', filename='theme-init.js') }}"></script>
+<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+<script defer src="{{ url_for('static', filename='theme.js') }}"></script>
+</head>
+<body class="page-catalog">
+
+<!-- Тосты для уведомлений (только для авторизации, т.к. добавление в корзину теперь на детальной странице) -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="toastLogin" class="toast align-items-center text-bg-danger border-0" role="alert">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="bi bi-person-x"></i> Войдите на сайт, чтобы добавить в корзину
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+{% include '_navbar.html' %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="container mt-3">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<section class="hero-section">
+    <div class="hero-content">
+        <div class="eyebrow"><i class="bi bi-stars"></i> Система учета товаров и бронирования</div>
+        <h1 class="hero-title">SportMix — <span>учет и бронирование товаров</span></h1>
+        <p class="hero-subtitle">
+            Веб-приложение объединяет каталог товаров, учет размеров и складских остатков, корзину, личные бронирования пользователей и административный контур для управления ассортиментом.
+        </p>
+        <div class="hero-actions">
+            <a href="#catalog" class="btn btn-primary btn-lg"><i class="bi bi-grid-3x3-gap"></i> Перейти к каталогу</a>
+            {% if session.user_id and session.role == 'admin' %}
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary btn-lg"><i class="bi bi-speedometer2"></i> Открыть админ-панель</a>
+            {% elif session.user_id %}
+                <a href="{{ url_for('my_reservations') }}" class="btn btn-outline-primary btn-lg"><i class="bi bi-calendar-check"></i> Мои брони</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg"><i class="bi bi-box-arrow-in-right"></i> Войти в систему</a>
+            {% endif %}
+        </div>
+        <div class="hero-metrics">
+            <div class="metric-card"><strong>01</strong><span>Учет товаров, категорий, размеров и остатков</span></div>
+            <div class="metric-card"><strong>02</strong><span>Предварительное бронирование выбранных позиций</span></div>
+            <div class="metric-card"><strong>03</strong><span>Административный контроль ассортимента и заявок</span></div>
+        </div>
+    </div>
+</section>
+
+<div class="container-fluid catalog-shell" id="catalog">
+    <div class="catalog-head">
+        <div>
+            <div class="section-kicker"><i class="bi bi-bag-check"></i> Товарный каталог</div>
+            <h2>Каталог доступных товаров</h2>
+            <p>Нажмите на карточку товара, чтобы увидеть подробное описание, выбрать размер и добавить в корзину.</p>
+        </div>
+    </div>
+    <div class="catalog-filter-panel page-panel mb-4">
+        <form method="get" class="catalog-filter-grid">
+            <div class="catalog-filter-field catalog-filter-search">
+                <label class="form-label" for="catalog-search">Поиск по названию</label>
+                <input id="catalog-search" type="search" name="q" class="form-control" value="{{ filters.q }}" placeholder="Например: кроссовки">
+            </div>
+            <div class="catalog-filter-field">
+                <label class="form-label" for="catalog-category">Категория</label>
+                <select id="catalog-category" name="category" class="form-control">
+                    <option value="">Все категории</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if filters.category == category.id %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="catalog-filter-field">
+                <label class="form-label" for="catalog-sort">Сортировка</label>
+                <select id="catalog-sort" name="sort" class="form-control">
+                    <option value="" {% if not filters.sort %}selected{% endif %}>По умолчанию</option>
+                    <option value="price_asc" {% if filters.sort == 'price_asc' %}selected{% endif %}>Сначала дешевые</option>
+                    <option value="price_desc" {% if filters.sort == 'price_desc' %}selected{% endif %}>Сначала дорогие</option>
+                </select>
+            </div>
+            <div class="catalog-filter-actions">
+                <label class="stock-checkbox">
+                    <input type="checkbox" name="in_stock" value="1" {% if filters.in_stock %}checked{% endif %}>
+                    <span>Только в наличии</span>
+                </label>
+                <div class="catalog-filter-buttons">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Найти</button>
+                    <a href="{{ url_for('index') }}#catalog" class="btn btn-secondary catalog-reset-button" aria-label="Сбросить фильтры"><i class="bi bi-x-lg"></i></a>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="row g-4">
+        <div class="col-12">
+            {% if not products_by_cat %}
+                <div class="empty-state">
+                    <i class="bi bi-search"></i>
+                    <h3>Товары не найдены</h3>
+                    <p>Измените поисковый запрос, категорию или фильтр наличия.</p>
+                    <a href="{{ url_for('index') }}#catalog" class="btn btn-primary">Показать весь каталог</a>
+                </div>
+            {% endif %}
+            {% for cat_id, data in products_by_cat.items() %}
+                <div class="product-category mb-5" data-cat="{{ cat_id }}">
+                    <h4 class="text-white w-100 mb-3">{{ data.name }}</h4>
+                    {% for product in data.products %}
+                        <div class="product-card-cell">
+                            <div class="card product-card flex-fill {% if product_stock_state(product) == 'out' %}product-card-unavailable{% endif %}">
+                                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="text-decoration-none product-card-link">
+                                    <div class="product-image-wrapper">
+                                        {% if product.image %}
+                                            <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}" data-name="{{ product.name }}">
+                                        {% else %}
+                                            <div class="no-image">
+                                                <div><i class="bi bi-image"></i><span>Нет фото</span></div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">{{ product.name }}</h5>
+                                        {% if product.category %}
+                                            <p class="product-card-category">{{ product.category.name }}</p>
+                                        {% endif %}
+                                        <p class="price">{{ product.price }} ₽</p>
+                                        <div class="product-stock-line">
+                                            <span class="{{ product_stock_badge(product) }}">{{ product_stock_label(product) }}</span>
+                                            <span class="stock-count">{{ product_total_quantity(product) }} шт.</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
