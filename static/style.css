@@ -1367,6 +1367,15 @@ html:not([data-theme="dark"]) .product-manage-meta strong {
 .reservation-product-cell { min-width: 190px; }
 .reservation-status-cell { min-width: 205px; }
 .reservation-mobile-only { display: none; }
+.booking-label { display: none; }
+.booking-value {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+.booking-value > strong {
+    display: block;
+}
 .reservations-table textarea.form-control-sm { min-width: 190px; resize: vertical; }
 .reservations-table select.form-control-sm { min-width: 180px; }
 
@@ -4797,19 +4806,27 @@ html[data-theme="dark"] .cart-summary-price {
     }
 
     .page-admin .reservations-table:not(.analytics-products-table) td {
-        display: grid;
-        grid-template-columns: minmax(100px, 38%) minmax(0, 1fr);
-        gap: 10px;
         padding: 10px 0;
         border: 0 !important;
         text-align: left;
-        overflow-wrap: anywhere;
     }
 
-    .page-admin .reservations-table:not(.analytics-products-table) td::before {
-        content: attr(data-label);
+    .page-admin .reservations-table:not(.analytics-products-table) .booking-row {
+        display: grid;
+        grid-template-columns: 115px minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+        overflow-wrap: normal;
+    }
+
+    .page-admin .reservations-table:not(.analytics-products-table) .booking-row::before {
+        display: none;
+        content: none;
+    }
+
+    .page-admin .reservations-table:not(.analytics-products-table) .booking-label {
+        display: block;
         grid-column: 1;
-        grid-row: 1 / -1;
         align-self: start;
         color: var(--primary);
         font-size: .76rem;
@@ -4818,11 +4835,19 @@ html[data-theme="dark"] .cart-summary-price {
         letter-spacing: .04em;
     }
 
-    .page-admin .reservations-table:not(.analytics-products-table) td > * {
+    .page-admin .reservations-table:not(.analytics-products-table) .booking-value {
         grid-column: 2;
         min-width: 0;
         max-width: 100%;
         overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    .page-admin .reservations-table:not(.analytics-products-table) .booking-value select,
+    .page-admin .reservations-table:not(.analytics-products-table) .booking-value textarea,
+    .page-admin .reservations-table:not(.analytics-products-table) .booking-value input {
+        width: 100%;
+        max-width: 100%;
     }
 
     .page-admin .reservations-table:not(.analytics-products-table) td[colspan] {
@@ -4832,20 +4857,6 @@ html[data-theme="dark"] .cart-summary-price {
 
     .page-admin .reservations-table:not(.analytics-products-table) td[colspan]::before {
         display: none;
-    }
-
-    .page-admin .reservations-table:not(.analytics-products-table) .reservation-product-category {
-        display: none;
-    }
-
-    .page-admin .reservations-table:not(.analytics-products-table) .reservation-history-cell {
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
-
-    .page-admin .reservations-table:not(.analytics-products-table) .reservation-history-cell::before,
-    .page-admin .reservations-table:not(.analytics-products-table) .reservation-history-cell > * {
-        grid-column: 1;
     }
 
     .page-admin .reservations-table:not(.analytics-products-table) .reservation-history-cell .btn,
@@ -4875,6 +4886,13 @@ html[data-theme="dark"] .cart-summary-price {
 
     .ticket-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 390px) {
+    .page-admin .reservations-table:not(.analytics-products-table) .booking-row {
+        grid-template-columns: 100px minmax(0, 1fr);
+        gap: 10px;
     }
 }
 
