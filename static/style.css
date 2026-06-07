@@ -5054,3 +5054,101 @@ html[data-theme="dark"] .cart-summary-price {
         }
     }
 }
+
+/* Mobile viewport background hardening: prevents white rubber-scroll gaps on iOS. */
+html {
+    min-height: 100%;
+    background-color: #f5f7fb;
+}
+
+html[data-theme="dark"] {
+    background-color: #020711;
+}
+
+body {
+    min-height: 100%;
+    margin: 0;
+    background-color: #f5f7fb;
+    overflow-x: hidden;
+}
+
+html[data-theme="dark"] body {
+    background-color: #020711;
+}
+
+.page,
+.app,
+.wrapper,
+.main,
+.content,
+.site-wrapper,
+main {
+    background: transparent;
+}
+
+@media (max-width: 768px) {
+    html,
+    body {
+        min-height: 100%;
+        background-color: #f5f7fb !important;
+        overflow-x: hidden;
+    }
+
+    html[data-theme="dark"],
+    html[data-theme="dark"] body {
+        background-color: #020711 !important;
+    }
+
+    body {
+        padding-bottom: 0 !important;
+        min-height: 100svh;
+        min-height: 100dvh;
+    }
+
+    .auth-page,
+    .analytics-shell,
+    .ticket-page,
+    .ticket-shell,
+    main,
+    .page,
+    .app,
+    .wrapper,
+    .main,
+    .content,
+    .site-wrapper {
+        min-height: 100svh;
+        min-height: 100dvh;
+        background: transparent;
+    }
+}
+
+@supports (-webkit-touch-callout: none) {
+    @media (max-width: 768px) {
+        html,
+        body {
+            min-height: -webkit-fill-available;
+            background-color: #f5f7fb !important;
+            overflow-x: hidden;
+        }
+
+        html[data-theme="dark"],
+        html[data-theme="dark"] body {
+            background-color: #020711 !important;
+        }
+
+        .auth-page,
+        .analytics-shell,
+        .ticket-page,
+        .ticket-shell,
+        main,
+        .page,
+        .app,
+        .wrapper,
+        .main,
+        .content,
+        .site-wrapper {
+            min-height: -webkit-fill-available;
+            background: transparent;
+        }
+    }
+}
