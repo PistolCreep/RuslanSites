@@ -12,9 +12,8 @@ from sqlalchemy.orm import joinedload
 import json
 from functools import wraps
 from flask import Response
-import csv
 import zipfile
-from io import StringIO, BytesIO
+from io import BytesIO
 from xml.sax.saxutils import escape
 
 app = Flask(__name__)
@@ -675,18 +674,7 @@ def export_reservations(reservations, export_format):
             'Комментарий менеджера': r.manager_comment or ''
         })
 
-    if export_format == 'csv':
-        output = StringIO()
-        headers = list(data[0].keys()) if data else [
-            'ID', 'Пользователь', 'Телефон', 'Товар', 'Категория', 'Размер',
-            'Количество', 'Статус', 'Дата брони', 'Причина невыдачи', 'Комментарий менеджера'
-        ]
-        writer = csv.DictWriter(output, fieldnames=headers)
-        writer.writeheader()
-        writer.writerows(data)
-        return Response(output.getvalue(), mimetype='text/csv', headers={'Content-Disposition': 'attachment;filename=analytics.csv'})
-
-    elif export_format == 'excel':
+    if export_format == 'excel':
         headers = list(data[0].keys()) if data else [
             'ID', 'Пользователь', 'Телефон', 'Товар', 'Категория', 'Размер',
             'Количество', 'Статус', 'Дата брони', 'Причина невыдачи', 'Комментарий менеджера'
@@ -1629,7 +1617,7 @@ def admin_analytics():
     reservations = query.order_by(Reservation.reservation_date.desc()).all()
     products = Product.query.order_by(Product.name.asc()).all()
 
-    if export in ('csv', 'excel'):
+    if export == 'excel':
         return export_reservations(reservations, export)
 
     total_count = len(reservations)

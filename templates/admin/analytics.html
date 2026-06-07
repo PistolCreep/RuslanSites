@@ -113,7 +113,6 @@
             <a href="{{ url_for('admin_analytics') }}" class="btn btn-secondary" title="Сбросить"><i class="bi bi-x-lg"></i></a>
         </div>
         <div class="col-lg-3 d-flex gap-2">
-            <a href="{{ url_for('admin_analytics', export='csv', product_id=selected_product_id, start_date=start_date, end_date=end_date) }}" class="btn btn-success w-100"><i class="bi bi-filetype-csv"></i> CSV</a>
             <a href="{{ url_for('admin_analytics', export='excel', product_id=selected_product_id, start_date=start_date, end_date=end_date) }}" class="btn btn-info w-100"><i class="bi bi-file-excel"></i> Excel</a>
         </div>
     </form>

@@ -1365,6 +1365,7 @@ html:not([data-theme="dark"]) .product-manage-meta strong {
 
 .reservation-product-cell { min-width: 190px; }
 .reservation-status-cell { min-width: 205px; }
+.reservation-mobile-only { display: none; }
 .reservations-table textarea.form-control-sm { min-width: 190px; resize: vertical; }
 .reservations-table select.form-control-sm { min-width: 180px; }
 
@@ -3584,7 +3585,7 @@ button,
     }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
     .auth-page {
         align-items: flex-start;
         padding: 18px 14px;
@@ -4248,6 +4249,30 @@ button,
     font-weight: 850;
 }
 
+@media (max-width: 768px) {
+    .product-category {
+        grid-template-columns: 1fr;
+    }
+
+    .product-image-wrapper,
+    .no-image {
+        height: clamp(300px, 74vw, 390px);
+        padding: 6px;
+    }
+
+    .product-image-wrapper img {
+        width: 88%;
+        height: 88%;
+        object-fit: contain;
+        object-position: center;
+        transform: scale(1.1);
+    }
+
+    .product-card:hover .product-image-wrapper img {
+        transform: scale(1.12);
+    }
+}
+
 .product-card-unavailable .product-image-wrapper img {
     filter: grayscale(.4);
 }
@@ -4653,7 +4678,7 @@ html[data-theme="dark"] .cart-summary-price {
     }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
     .admin-page-actions .btn,
     .low-stock-actions .btn {
         flex: 1 1 100%;
@@ -4725,6 +4750,10 @@ html[data-theme="dark"] .cart-summary-price {
     }
 
     .page-admin .reservations-table:not(.analytics-products-table) td::before {
+        content: attr(data-label);
+        grid-column: 1;
+        grid-row: 1 / -1;
+        align-self: start;
         color: var(--primary);
         font-size: .76rem;
         font-weight: 950;
@@ -4732,17 +4761,41 @@ html[data-theme="dark"] .cart-summary-price {
         letter-spacing: .04em;
     }
 
-    .page-admin .reservations-table:not(.analytics-products-table) td:nth-child(1)::before { content: "ID"; }
-    .page-admin .reservations-table:not(.analytics-products-table) td:nth-child(2)::before { content: "Пользователь"; }
-    .page-admin .reservations-table:not(.analytics-products-table) td:nth-child(3)::before { content: "Телефон"; }
-    .page-admin .reservations-table:not(.analytics-products-table) td:nth-child(4)::before { content: "Товар"; }
-    .page-admin .reservations-table:not(.analytics-products-table) td:nth-child(5)::before { content: "Размер"; }
-    .page-admin .reservations-table:not(.analytics-products-table) td:nth-child(6)::before { content: "Кол-во"; }
-    .page-admin .reservations-table:not(.analytics-products-table) td:nth-child(7)::before { content: "Дата"; }
-    .page-admin .reservations-table:not(.analytics-products-table) td:nth-child(8)::before { content: "Статус"; }
-    .page-admin .reservations-table:not(.analytics-products-table) td:nth-child(9)::before { content: "Комментарий"; }
-    .page-admin .reservations-table:not(.analytics-products-table) td:nth-child(10)::before { content: "Причина"; }
-    .page-admin .reservations-table:not(.analytics-products-table) td:nth-child(11)::before { content: "История"; }
+    .page-admin .reservations-table:not(.analytics-products-table) td > * {
+        grid-column: 2;
+        min-width: 0;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+
+    .page-admin .reservations-table:not(.analytics-products-table) td[colspan] {
+        display: block;
+        text-align: center;
+    }
+
+    .page-admin .reservations-table:not(.analytics-products-table) td[colspan]::before {
+        display: none;
+    }
+
+    .page-admin .reservations-table:not(.analytics-products-table) .reservation-product-category {
+        display: none;
+    }
+
+    .page-admin .reservations-table:not(.analytics-products-table) .reservation-history-cell {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .page-admin .reservations-table:not(.analytics-products-table) .reservation-history-cell::before,
+    .page-admin .reservations-table:not(.analytics-products-table) .reservation-history-cell > * {
+        grid-column: 1;
+    }
+
+    .page-admin .reservations-table:not(.analytics-products-table) .reservation-history-cell .btn,
+    .page-admin .reservations-table:not(.analytics-products-table) .history-details {
+        width: 100%;
+        min-width: 0;
+    }
 
     .reservations-table textarea.form-control-sm,
     .reservations-table select.form-control-sm {
