@@ -7,7 +7,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <script src="{{ url_for('static', filename='theme-init.js') }}"></script>
-<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='style.css') }}?v=20260607-iphone-img-fix" rel="stylesheet">
 <script defer src="{{ url_for('static', filename='theme.js') }}"></script>
 </head>
 <body class="page-catalog">
@@ -124,9 +124,9 @@
                         <div class="product-card-cell">
                             <div class="card product-card flex-fill {% if product_stock_state(product) == 'out' %}product-card-unavailable{% endif %}">
                                 <a href="{{ url_for('product_detail', product_id=product.id) }}" class="text-decoration-none product-card-link">
-                                    <div class="product-image-wrapper">
+                                    <div class="product-image-wrapper product-image-box">
                                         {% if product.image %}
-                                            <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}" data-name="{{ product.name }}">
+                                            <img class="product-image" src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}" data-name="{{ product.name }}">
                                         {% else %}
                                             <div class="no-image">
                                                 <div><i class="bi bi-image"></i><span>Нет фото</span></div>
