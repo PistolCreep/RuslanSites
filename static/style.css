@@ -25,6 +25,8 @@
     --gradient-success: linear-gradient(135deg, #2ee6a6 0%, #38d9ff 100%);
     --gradient-gold: linear-gradient(135deg, #f8c76f 0%, #ff8f70 100%);
     --gradient-danger: linear-gradient(135deg, #ff5277 0%, #ff9f43 100%);
+    --app-bg: #020711;
+    --app-bg-solid: #020711;
 }
 
 * { box-sizing: border-box; }
@@ -1866,6 +1868,8 @@ html[data-theme="dark"] body.analytics-page .chart-empty {
     --gradient-success: linear-gradient(135deg, #e5f4ee 0%, #84b8a5 100%);
     --gradient-gold: linear-gradient(135deg, #fff5dc 0%, #dfbd7d 100%);
     --gradient-danger: linear-gradient(135deg, #f6dfe2 0%, #c9828a 100%);
+    --app-bg: linear-gradient(180deg, #f5f7fb 0%, #eef3f8 100%);
+    --app-bg-solid: #f5f7fb;
     --chart-text: #172334;
     --chart-grid: rgba(45, 72, 101, .12);
     --chart-border: rgba(255, 255, 255, .92);
@@ -2617,6 +2621,8 @@ html[data-theme="dark"] {
     --gradient-success: linear-gradient(135deg, #2ee6a6 0%, #38d9ff 100%);
     --gradient-gold: linear-gradient(135deg, #f8c76f 0%, #ff8f70 100%);
     --gradient-danger: linear-gradient(135deg, #ff5277 0%, #ff9f43 100%);
+    --app-bg: #020711;
+    --app-bg-solid: #020711;
     --chart-text: #edf6ff;
     --chart-grid: rgba(129, 181, 255, .12);
     --chart-border: rgba(2, 7, 17, .90);
@@ -5058,67 +5064,71 @@ html[data-theme="dark"] .cart-summary-price {
 /* Mobile viewport background hardening: prevents white rubber-scroll gaps on iOS. */
 html {
     min-height: 100%;
-    background-color: #f5f7fb;
-}
-
-html[data-theme="dark"] {
-    background-color: #020711;
+    background: var(--app-bg) !important;
 }
 
 body {
     min-height: 100%;
     margin: 0;
-    background-color: #f5f7fb;
+    background: var(--app-bg) !important;
     overflow-x: hidden;
 }
 
-html[data-theme="dark"] body {
-    background-color: #020711;
-}
-
+body,
+main,
 .page,
 .app,
 .wrapper,
-.main,
-.content,
 .site-wrapper,
-main {
-    background: transparent;
+.content {
+    background: var(--app-bg);
 }
 
 @media (max-width: 768px) {
-    html,
-    body {
+    html {
         min-height: 100%;
-        background-color: #f5f7fb !important;
+        background: var(--app-bg) !important;
         overflow-x: hidden;
     }
 
-    html[data-theme="dark"],
-    html[data-theme="dark"] body {
-        background-color: #020711 !important;
-    }
-
     body {
-        padding-bottom: 0 !important;
         min-height: 100svh;
-        min-height: 100dvh;
+        margin: 0;
+        background: var(--app-bg) !important;
+        overflow-x: hidden;
+        padding-bottom: env(safe-area-inset-bottom);
     }
 
-    .auth-page,
-    .analytics-shell,
-    .ticket-page,
-    .ticket-shell,
+    body,
+    body::before,
+    body::after,
+    .page,
+    .wrapper {
+        background-attachment: scroll !important;
+    }
+
     main,
     .page,
     .app,
     .wrapper,
-    .main,
-    .content,
-    .site-wrapper {
+    .site-wrapper,
+    .content {
         min-height: 100svh;
-        min-height: 100dvh;
-        background: transparent;
+        background: var(--app-bg) !important;
+    }
+}
+
+@supports (min-height: 100dvh) {
+    @media (max-width: 768px) {
+        body,
+        main,
+        .page,
+        .app,
+        .wrapper,
+        .site-wrapper,
+        .content {
+            min-height: 100dvh;
+        }
     }
 }
 
@@ -5127,28 +5137,39 @@ main {
         html,
         body {
             min-height: -webkit-fill-available;
-            background-color: #f5f7fb !important;
+            background: var(--app-bg) !important;
             overflow-x: hidden;
         }
 
-        html[data-theme="dark"],
-        html[data-theme="dark"] body {
-            background-color: #020711 !important;
+        body {
+            position: relative;
         }
 
-        .auth-page,
-        .analytics-shell,
-        .ticket-page,
-        .ticket-shell,
+        body::before,
+        body::after {
+            position: fixed !important;
+            top: -120px !important;
+            right: 0 !important;
+            bottom: -180px !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: calc(100svh + 300px) !important;
+            background-color: var(--app-bg-solid) !important;
+            background-attachment: scroll !important;
+            pointer-events: none !important;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
         main,
         .page,
         .app,
         .wrapper,
-        .main,
-        .content,
-        .site-wrapper {
+        .site-wrapper,
+        .content {
             min-height: -webkit-fill-available;
-            background: transparent;
+            background: var(--app-bg) !important;
         }
     }
 }
