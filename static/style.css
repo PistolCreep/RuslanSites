@@ -5086,14 +5086,28 @@ html[data-theme="dark"] .cart-summary-price {
 /* Mobile viewport background hardening: prevents white rubber-scroll gaps on iOS. */
 html {
     min-height: 100%;
-    background: var(--app-bg) !important;
+    background: var(--app-bg);
+    background-color: var(--app-bg-solid) !important;
 }
 
 body {
     min-height: 100%;
     margin: 0;
-    background: var(--app-bg) !important;
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+    background: transparent !important;
     overflow-x: hidden;
+}
+
+body::before {
+    z-index: -2;
+    pointer-events: none;
+}
+
+body::after {
+    z-index: -1;
+    pointer-events: none;
 }
 
 body,
@@ -5103,29 +5117,37 @@ main,
 .wrapper,
 .site-wrapper,
 .content {
-    background: var(--app-bg);
+    position: relative;
+}
+
+main,
+.page,
+.app,
+.wrapper,
+.site-wrapper,
+.content {
+    z-index: 1;
+    background: transparent;
 }
 
 @media (max-width: 768px) {
     html {
         min-height: 100%;
-        background: var(--app-bg) !important;
+        background: var(--app-bg);
+        background-color: var(--app-bg-solid) !important;
         overflow-x: hidden;
     }
 
     body {
         min-height: 100svh;
         margin: 0;
-        background: var(--app-bg) !important;
+        background: transparent !important;
         overflow-x: hidden;
         padding-bottom: env(safe-area-inset-bottom);
     }
 
-    body,
     body::before,
-    body::after,
-    .page,
-    .wrapper {
+    body::after {
         background-attachment: scroll !important;
     }
 
@@ -5136,7 +5158,7 @@ main,
     .site-wrapper,
     .content {
         min-height: 100svh;
-        background: var(--app-bg) !important;
+        background: transparent !important;
     }
 }
 
@@ -5159,12 +5181,17 @@ main,
         html,
         body {
             min-height: -webkit-fill-available;
-            background: var(--app-bg) !important;
             overflow-x: hidden;
+        }
+
+        html {
+            background: var(--app-bg);
+            background-color: var(--app-bg-solid) !important;
         }
 
         body {
             position: relative;
+            background: transparent !important;
         }
 
         body::before,
@@ -5177,7 +5204,6 @@ main,
             width: 100% !important;
             height: auto !important;
             min-height: calc(100svh + 300px) !important;
-            background-color: var(--app-bg-solid) !important;
             background-attachment: scroll !important;
             pointer-events: none !important;
             -webkit-transform: translateZ(0);
@@ -5191,7 +5217,7 @@ main,
         .site-wrapper,
         .content {
             min-height: -webkit-fill-available;
-            background: var(--app-bg) !important;
+            background: transparent !important;
         }
     }
 }
