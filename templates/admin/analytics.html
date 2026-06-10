@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Аналитика бронирований</title>
+<title>Экспертный анализ</title>
 <link rel="icon" href="data:,">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -16,10 +16,10 @@
 
 <div class="container-fluid analytics-shell px-4">
     <h1 class="page-title">
-        <i class="bi bi-graph-up-arrow"></i> Аналитика продаж
+        <i class="bi bi-graph-up-arrow"></i> Модуль экспертного анализа на основе правил
     </h1>
     <p class="page-lead text-center text-white-50 mb-4">
-        Анализируйте выдачи, отказы и причины невыдачи по каждому товару, чтобы находить слабые места ассортимента.
+        Модуль выполняет экспертный анализ данных на основе заранее заданных правил и показателей системы. Он помогает выявлять проблемные зоны, оценивать остатки, продажи, расходы и другие показатели.
     </p>
     <div class="admin-page-actions mb-4">
         <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
@@ -58,22 +58,22 @@
         </div>
     </div>
 
-    <div class="ai-analysis-card mb-4">
-        <div class="ai-analysis-head">
+    <div class="expert-analysis-card mb-4">
+        <div class="expert-analysis-head">
             <div>
-                <span class="section-kicker"><i class="bi bi-stars"></i> Локальный анализ</span>
-                <h2>Интеллектуальный анализ</h2>
+                <span class="section-kicker"><i class="bi bi-clipboard2-pulse"></i> Экспертный анализ</span>
+                <h2>Модуль экспертного анализа на основе правил</h2>
             </div>
-            <div class="ai-analysis-score">{{ metrics.success_percent }}%</div>
+            <div class="expert-analysis-score">{{ metrics.success_percent }}%</div>
         </div>
-        <div class="ai-summary">
-            {{ ai_analysis.summary }}
+        <div class="expert-summary">
+            {{ expert_analysis.summary }}
         </div>
-        <div class="ai-analysis-grid">
+        <div class="expert-analysis-grid">
             <div>
                 <h4><i class="bi bi-exclamation-triangle"></i> Возможные проблемы</h4>
                 <ul>
-                    {% for problem in ai_analysis.problems %}
+                    {% for problem in expert_analysis.problems %}
                         <li>{{ problem }}</li>
                     {% endfor %}
                 </ul>
@@ -81,7 +81,7 @@
             <div>
                 <h4><i class="bi bi-lightbulb"></i> Рекомендации менеджеру</h4>
                 <ul>
-                    {% for recommendation in ai_analysis.recommendations %}
+                    {% for recommendation in expert_analysis.recommendations %}
                         <li>{{ recommendation }}</li>
                     {% endfor %}
                 </ul>

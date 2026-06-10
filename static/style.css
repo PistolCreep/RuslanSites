@@ -1400,6 +1400,28 @@ html:not([data-theme="dark"]) .product-manage-meta strong {
     box-shadow: 0 0 0 .18rem rgba(255, 209, 102, .08);
 }
 
+.booking-limit-control {
+    min-width: 0;
+}
+
+.booking-limit-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.booking-limit-inline select {
+    flex: 0 0 92px;
+    min-width: 92px;
+}
+
+.booking-limit-inline span {
+    color: var(--muted);
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
 .reservation-save-bar {
     display: flex;
     justify-content: flex-end;
@@ -1443,7 +1465,7 @@ html:not([data-theme="dark"]) .product-manage-meta strong {
     font-weight: 950;
 }
 
-.ai-analysis-card {
+.expert-analysis-card {
     position: relative;
     padding: 26px;
     overflow: hidden;
@@ -1456,7 +1478,7 @@ html:not([data-theme="dark"]) .product-manage-meta strong {
     box-shadow: var(--shadow-soft);
 }
 
-.ai-analysis-head {
+.expert-analysis-head {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -1464,11 +1486,11 @@ html:not([data-theme="dark"]) .product-manage-meta strong {
     margin-bottom: 18px;
 }
 
-.ai-analysis-head .section-kicker {
+.expert-analysis-head .section-kicker {
     margin-bottom: 12px;
 }
 
-.ai-analysis-head h2 {
+.expert-analysis-head h2 {
     margin: 0;
     color: #fff;
     font-size: clamp(1.6rem, 3vw, 2.4rem);
@@ -1476,7 +1498,7 @@ html:not([data-theme="dark"]) .product-manage-meta strong {
     letter-spacing: 0;
 }
 
-.ai-analysis-score {
+.expert-analysis-score {
     display: grid;
     place-items: center;
     flex: 0 0 auto;
@@ -1491,7 +1513,7 @@ html:not([data-theme="dark"]) .product-manage-meta strong {
     box-shadow: 0 18px 42px rgba(56, 217, 255, .24);
 }
 
-.ai-summary {
+.expert-summary {
     margin-bottom: 18px;
     padding: 18px 20px;
     border: 1px solid rgba(255, 255, 255, .10);
@@ -1501,38 +1523,38 @@ html:not([data-theme="dark"]) .product-manage-meta strong {
     background: rgba(255, 255, 255, .055);
 }
 
-.ai-analysis-grid {
+.expert-analysis-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
 }
 
-.ai-analysis-grid > div {
+.expert-analysis-grid > div {
     padding: 18px;
     border: 1px solid rgba(109, 213, 255, .14);
     border-radius: 22px;
     background: rgba(2, 7, 17, .24);
 }
 
-.ai-analysis-grid h4 {
+.expert-analysis-grid h4 {
     margin: 0 0 12px;
     color: #fff;
     font-size: 1rem;
     font-weight: 900;
 }
 
-.ai-analysis-grid h4 i {
+.expert-analysis-grid h4 i {
     margin-right: 8px;
     color: #9fe8ff;
 }
 
-.ai-analysis-grid ul {
+.expert-analysis-grid ul {
     margin: 0;
     padding-left: 18px;
     color: rgba(237, 246, 255, .78);
 }
 
-.ai-analysis-grid li + li {
+.expert-analysis-grid li + li {
     margin-top: 8px;
 }
 
@@ -1813,7 +1835,7 @@ html[data-theme="dark"] body.analytics-page .chart-empty {
     .admin-dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .analytics-metrics,
     .analytics-charts { grid-template-columns: 1fr 1fr; }
-    .ai-analysis-grid { grid-template-columns: 1fr; }
+    .expert-analysis-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 576px) {
@@ -1837,8 +1859,8 @@ html[data-theme="dark"] body.analytics-page .chart-empty {
         min-height: 280px;
     }
     .chart-box-donut { height: 290px; }
-    .ai-analysis-head { display: block; }
-    .ai-analysis-score { margin-top: 14px; min-width: 82px; min-height: 82px; }
+    .expert-analysis-head { display: block; }
+    .expert-analysis-score { margin-top: 14px; min-width: 82px; min-height: 82px; }
 }
 
 /* ===== LIGHT THEME REDESIGN ===== */
@@ -1899,7 +1921,7 @@ body,
 .analytics-filter,
 .chart-card,
 .analytics-card,
-.ai-analysis-card,
+.expert-analysis-card,
 .reservations-table-wrap,
 .analytics-table-wrap,
 .btn,
@@ -2062,8 +2084,8 @@ body.auth-page::before {
 .booking-card h3,
 .admin-dashboard-card strong,
 .analytics-card strong,
-.ai-analysis-head h2,
-.ai-analysis-grid h4,
+.expert-analysis-head h2,
+.expert-analysis-grid h4,
 h4.text-white,
 .text-white,
 .cart-item h5 {
@@ -2085,8 +2107,8 @@ h4.text-white,
 .booking-card p,
 .admin-dashboard-card span,
 .analytics-card span,
-.ai-summary,
-.ai-analysis-grid ul,
+.expert-summary,
+.expert-analysis-grid ul,
 .table td,
 .text-white-50,
 .page-lead,
@@ -2116,7 +2138,7 @@ h4.text-white,
 .metric-card,
 .product-card,
 .admin-dashboard-card,
-.ai-analysis-card {
+.expert-analysis-card {
     border-color: rgba(45, 72, 101, .12) !important;
     background:
         radial-gradient(circle at 12% 0%, rgba(141, 181, 209, .16), transparent 34%),
@@ -2172,7 +2194,7 @@ h4.text-white,
 
 .zoom-icon,
 .admin-dashboard-card i,
-.ai-analysis-score,
+.expert-analysis-score,
 .modal-close {
     color: #fff;
     background: linear-gradient(135deg, #386f99, #6d93ae);
@@ -2288,8 +2310,8 @@ textarea.form-control {
 
 .file-upload,
 .sizes-section,
-.ai-summary,
-.ai-analysis-grid > div {
+.expert-summary,
+.expert-analysis-grid > div {
     border-color: rgba(45, 72, 101, .12);
     background: rgba(248, 251, 253, .82);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .52);
@@ -2372,7 +2394,7 @@ textarea.form-control {
     background: rgba(248, 251, 253, .72);
 }
 
-.ai-analysis-grid h4 i {
+.expert-analysis-grid h4 i {
     color: #386f99;
 }
 
@@ -2714,8 +2736,8 @@ html[data-theme="dark"] .cart-total,
 html[data-theme="dark"] .booking-card h3,
 html[data-theme="dark"] .admin-dashboard-card strong,
 html[data-theme="dark"] .analytics-card strong,
-html[data-theme="dark"] .ai-analysis-head h2,
-html[data-theme="dark"] .ai-analysis-grid h4,
+html[data-theme="dark"] .expert-analysis-head h2,
+html[data-theme="dark"] .expert-analysis-grid h4,
 html[data-theme="dark"] h4.text-white,
 html[data-theme="dark"] .text-white,
 html[data-theme="dark"] .cart-item h5 {
@@ -2749,7 +2771,7 @@ html[data-theme="dark"] .nav-link.active {
 html[data-theme="dark"] .navbar-brand i,
 html[data-theme="dark"] .zoom-icon,
 html[data-theme="dark"] .admin-dashboard-card i,
-html[data-theme="dark"] .ai-analysis-score,
+html[data-theme="dark"] .expert-analysis-score,
 html[data-theme="dark"] .modal-close {
     color: #06101d;
     background: var(--gradient-primary);
@@ -2796,8 +2818,8 @@ html[data-theme="dark"] .description-box,
 html[data-theme="dark"] .booking-card p,
 html[data-theme="dark"] .admin-dashboard-card span,
 html[data-theme="dark"] .analytics-card span,
-html[data-theme="dark"] .ai-summary,
-html[data-theme="dark"] .ai-analysis-grid ul,
+html[data-theme="dark"] .expert-summary,
+html[data-theme="dark"] .expert-analysis-grid ul,
 html[data-theme="dark"] .text-white-50,
 html[data-theme="dark"] .page-lead,
 html[data-theme="dark"] .auth-lead,
@@ -2827,7 +2849,7 @@ html[data-theme="dark"] .analytics-table-wrap {
 html[data-theme="dark"] .metric-card,
 html[data-theme="dark"] .product-card,
 html[data-theme="dark"] .admin-dashboard-card,
-html[data-theme="dark"] .ai-analysis-card {
+html[data-theme="dark"] .expert-analysis-card {
     border-color: rgba(109, 213, 255, .18) !important;
     background:
         radial-gradient(circle at 16% 0%, rgba(56,217,255,.18), transparent 34%),
@@ -2942,8 +2964,8 @@ html[data-theme="dark"] .form-control::placeholder {
 
 html[data-theme="dark"] .file-upload,
 html[data-theme="dark"] .sizes-section,
-html[data-theme="dark"] .ai-summary,
-html[data-theme="dark"] .ai-analysis-grid > div {
+html[data-theme="dark"] .expert-summary,
+html[data-theme="dark"] .expert-analysis-grid > div {
     border-color: rgba(109, 213, 255, .16);
     background: rgba(2, 7, 17, .34);
 }
@@ -3370,7 +3392,7 @@ button,
 .page-title,
 .auth-title,
 .product-detail-info h1,
-.ai-analysis-head h2,
+.expert-analysis-head h2,
 .form-control,
 .form-select,
 .list-group-item,
@@ -3613,7 +3635,7 @@ button,
     .product-detail-info,
     .help-content,
     .help-sidebar,
-    .ai-analysis-card,
+    .expert-analysis-card,
     .page-panel,
     .reservation-toolbar,
     .analytics-filter,
@@ -3749,8 +3771,8 @@ button,
         min-height: 0;
     }
 
-    .ai-summary,
-    .ai-analysis-grid > div {
+    .expert-summary,
+    .expert-analysis-grid > div {
         padding: 15px;
     }
 
@@ -4032,11 +4054,11 @@ button,
         padding: 10px 12px;
     }
 
-    .ai-analysis-card {
+    .expert-analysis-card {
         padding: 18px;
     }
 
-    .ai-analysis-score {
+    .expert-analysis-score {
         min-width: 78px;
         min-height: 78px;
         font-size: 1.22rem;

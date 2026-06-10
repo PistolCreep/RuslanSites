@@ -36,7 +36,7 @@
 
     <div class="page-panel reservation-toolbar mb-4">
         <form method="get" class="row g-3 align-items-end">
-            <div class="col-lg-3 col-md-6">
+            <div class="col-lg-2 col-md-6">
                 <label class="form-label">Статус</label>
                 <select name="status" class="form-control">
                     <option value="">Все статусы</option>
@@ -45,7 +45,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-lg-4 col-md-6">
+            <div class="col-lg-3 col-md-6">
                 <label class="form-label">Товар</label>
                 <select name="product_id" class="form-control">
                     <option value="">Все товары</option>
@@ -63,6 +63,19 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="col-lg-2 col-md-6">
+                <div class="booking-limit-control">
+                    <label class="form-label" for="per_page">Показывать</label>
+                    <div class="booking-limit-inline">
+                        <select id="per_page" name="per_page" class="form-control" onchange="this.form.submit()">
+                            {% for option in per_page_options %}
+                                <option value="{{ option }}" {% if filters.per_page == option %}selected{% endif %}>{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                        <span>записей</span>
+                    </div>
+                </div>
+            </div>
             <div class="col-lg-2 col-md-6 d-flex gap-2">
                 <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Фильтр</button>
                 <a href="{{ url_for('admin_reservations') }}" class="btn btn-secondary" title="Сбросить фильтры"><i class="bi bi-x-lg"></i></a>
@@ -70,7 +83,7 @@
         </form>
     </div>
 
-    <form method="post" action="{{ url_for('admin_reservations', status=filters.status, product_id=filters.product_id, reason=filters.reason) }}">
+    <form method="post" action="{{ url_for('admin_reservations', **list_query) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <div class="reservations-table-wrap">
             <div class="table-scroll">

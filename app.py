@@ -73,6 +73,8 @@ OPEN_RESERVATION_STATUSES = ('pending', 'confirmed')
 LIMITED_RESERVATION_STATUSES = ('pending', 'confirmed', 'active', 'issued')
 CSRF_METHODS = {'POST', 'PUT', 'PATCH', 'DELETE'}
 LOW_STOCK_THRESHOLD = 3
+RESERVATION_PER_PAGE_OPTIONS = (30, 50, 100)
+DEFAULT_RESERVATION_PER_PAGE = 30
 
 
 def get_csrf_token():
@@ -1404,6 +1406,12 @@ def admin_reservations():
     auto_cancelled = auto_cancel_old_pending_reservations()
     if auto_cancelled:
         flash(f'Автоматически отменено просроченных бронирований: {auto_cancelled}', 'info')
+
+    reservation_query_args = request.args.to_dict(flat=True)
+    reservations_redirect_url = (
+        url_for('admin_reservations', **reservation_query_args)
+        if reservation_query_args else url_for('admin_reservations')
+    )
     
     if request.method == 'POST':
         reservation_ids = request.form.getlist('reservation_ids')
@@ -1423,7 +1431,7 @@ def admin_reservations():
             new_status = normalize_reservation_status(request.form.get(f'status_{reservation_id}', reservation.status))
             if new_status not in RESERVATION_STATUSES:
                 flash(f'Некорректный статус для бронирования #{reservation_id}', 'danger')
-                return redirect(url_for('admin_reservations'))
+                return redirect(reservations_redirect_url)
             manager_comment = request.form.get(f'manager_comment_{reservation_id}', '').strip()
             not_issued_reason = request.form.get(f'not_issued_reason_{reservation_id}', '').strip()
 
@@ -1438,12 +1446,12 @@ def admin_reservations():
             # Если статус меняется на "Не выдан" - проверяем причину
             if new_status == 'not_issued' and not not_issued_reason:
                 flash(f'Для бронирования #{reservation_id} со статусом "Не выдан" обязательно укажите причину', 'danger')
-                return redirect(url_for('admin_reservations'))
+                return redirect(reservations_redirect_url)
 
             # Проверка: можно ли выдать? Выдать можно из статусов "pending" или "confirmed"
             if new_status == 'issued' and old_status not in ['pending', 'confirmed']:
                 flash(f'Бронирование #{reservation_id} можно выдать только из статуса "Ожидает подтверждения" или "Подтверждено"', 'danger')
-                return redirect(url_for('admin_reservations'))
+                return redirect(reservations_redirect_url)
 
             # Получаем размер для списания/возврата
             size_data = ProductSize.query.filter_by(
@@ -1459,7 +1467,7 @@ def admin_reservations():
                     reservation.issued_at = now
                 else:
                     flash(f'Недостаточно товара на складе для выдачи бронирования #{reservation_id}', 'danger')
-                    return redirect(url_for('admin_reservations'))
+                    return redirect(reservations_redirect_url)
 
             # Если статус меняется с "Выдан" на что-то другое и был списан - возвращаем остаток
             if old_status == 'issued' and new_status != 'issued' and reservation.is_stock_written_off:
@@ -1491,12 +1499,30 @@ def admin_reservations():
         else:
             flash('Изменений для сохранения не найдено', 'info')
 
-        return redirect(url_for('admin_reservations'))
+        return redirect(reservations_redirect_url)
 
     # GET запрос - показываем таблицу
     status_filter = request.args.get('status', '')
     product_filter = request.args.get('product_id', type=int)
     reason_filter = request.args.get('reason', '')
+    per_page_arg = request.args.get('per_page')
+    invalid_per_page = False
+
+    try:
+        per_page = int(per_page_arg) if per_page_arg is not None else DEFAULT_RESERVATION_PER_PAGE
+    except (TypeError, ValueError):
+        per_page = DEFAULT_RESERVATION_PER_PAGE
+        invalid_per_page = True
+
+    if per_page not in RESERVATION_PER_PAGE_OPTIONS:
+        per_page = DEFAULT_RESERVATION_PER_PAGE
+        invalid_per_page = per_page_arg is not None
+
+    if invalid_per_page:
+        normalized_args = request.args.to_dict(flat=True)
+        normalized_args['per_page'] = per_page
+        normalized_args.pop('page', None)
+        return redirect(url_for('admin_reservations', **normalized_args))
 
     query = Reservation.query.options(
         joinedload(Reservation.user),
@@ -1510,13 +1536,24 @@ def admin_reservations():
         query = query.filter(Reservation.not_issued_reason == reason_filter)
 
     # Пагинация
-    page = request.args.get('page', 1, type=int)
-    per_page = 30  # количество броней на странице
+    page = request.args.get('page', 1, type=int) or 1
+    if page < 1:
+        page = 1
     pagination = query.order_by(Reservation.reservation_date.desc()).paginate(
         page=page, per_page=per_page, error_out=False
     )
     reservations = pagination.items
     products = Product.query.order_by(Product.name.asc()).all()
+    filters = {
+        'status': status_filter,
+        'product_id': product_filter or '',
+        'reason': reason_filter,
+        'per_page': per_page,
+    }
+    list_query = {
+        **filters,
+        'page': page,
+    }
     
     return render_template(
         'admin/reservations.html',
@@ -1526,11 +1563,9 @@ def admin_reservations():
         status_labels=RESERVATION_STATUSES,
         status_badges=STATUS_BADGES,
         not_issued_reasons=NOT_ISSUED_REASONS,
-        filters={
-            'status': status_filter,
-            'product_id': product_filter or '',
-            'reason': reason_filter,
-        }
+        filters=filters,
+        list_query=list_query,
+        per_page_options=RESERVATION_PER_PAGE_OPTIONS,
     )
 
 # Админ: подтверждение бронирования
@@ -1697,7 +1732,7 @@ def admin_analytics():
         'pending': pending_count,
         'success_percent': success_percent,
     }
-    ai_analysis = generate_reservation_insights(metrics, product_stats, reason_labels, reason_values)
+    expert_analysis = generate_reservation_insights(metrics, product_stats, reason_labels, reason_values)
 
     chart_data_json = json.dumps(chart_data, ensure_ascii=False).replace('</', '<\\/')
 
@@ -1713,7 +1748,7 @@ def admin_analytics():
         has_status_data=any(value > 0 for value in status_values),
         has_product_data=any(value > 0 for value in product_issued_values + product_not_issued_values),
         has_reason_data=any(value > 0 for value in reason_values),
-        ai_analysis=ai_analysis,
+        expert_analysis=expert_analysis,
         status_labels=RESERVATION_STATUSES,
     )
 
